@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./src",
+    "moduleResolution": "node",
+    "outDir": "build/",
+    "inlineSourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    "module": "commonjs",
+    "target": "ES2019",
+    "jsx": "preserve",
+    "esModuleInterop": true,
+    "preserveSymlinks": true,
+    "strictNullChecks": true,
+    "skipLibCheck": true,
+    "noImplicitAny": true,
+    "incremental": true,
+    "tsBuildInfoFile": ".tsbuildinfo",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "strict": false,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsxImportSource": "@emotion/react",
+    "noEmit": true
+  },
+  "types": [
+    "node"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/node_modules/*",
+    "build",
+    "trash"
+  ],
+  "include": [
+    "src/declarations/next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ]
+}
