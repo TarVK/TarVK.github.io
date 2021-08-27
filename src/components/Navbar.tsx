@@ -68,10 +68,14 @@ export const Navbar: FC<{
             </Button>
         </PlainLink>
     );
-    const leftLinks: ILink[] = [{name: "projects", to: "/projects"}];
+    const leftLinks: ILink[] = [
+        {name: "Projects", to: "/#projects"},
+        {name: "Articles", to: "/#articles"},
+        {name: "Hobbies", to: "/#hobbies"},
+    ];
     const rightLinks: ILink[] = [
         {
-            name: "github",
+            name: "Github",
             el: (
                 <GitHubIcon
                     css={theme => ({fontSize: 40, verticalAlign: "middle"})}

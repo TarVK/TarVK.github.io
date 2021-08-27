@@ -1,6 +1,7 @@
 import {alpha, InputBase, makeStyles} from "@material-ui/core";
 import {FC, useState} from "react";
 import SearchIcon from "@material-ui/icons/Search";
+import {Interpolation, Theme} from "@emotion/react";
 
 // From: https://material-ui.com/components/app-bar/#app-bar-with-search-field
 const useStyles = makeStyles(theme => ({
@@ -39,7 +40,7 @@ const useStyles = makeStyles(theme => ({
         transition: theme.transitions.create("width"),
         width: "100%",
         [theme.breakpoints.up("sm")]: {
-            width: "12ch",
+            width: "16ch",
             "&:focus": {
                 width: "20ch",
             },
@@ -47,19 +48,21 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-export const SearchBar: FC<{onSubmit: (search: string) => void}> = ({
-    onSubmit,
-}) => {
+export const SearchBar: FC<{
+    onSubmit: (search: string) => void;
+    className?: string;
+    placeHolder?: string;
+}> = ({onSubmit, className, placeHolder = "Search…"}) => {
     const [value, setValue] = useState("");
     const classes = useStyles();
 
     return (
-        <div className={classes.search}>
+        <div className={`${classes.search} ${className}`}>
             <div className={classes.searchIcon}>
                 <SearchIcon />
             </div>
             <InputBase
-                placeholder="Search…"
+                placeholder={placeHolder}
                 classes={{
                     root: classes.inputRoot,
                     input: classes.inputInput,

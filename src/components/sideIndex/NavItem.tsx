@@ -23,7 +23,7 @@ export const NavItem: FC<{
 
     const [opened, setOpened] = useState(item.opened ?? true);
 
-    const expandable = item.children && !item.link;
+    const expandable = !!item.children?.length && !item.link;
     const onClickCallback = useCallback(() => {
         if (expandable) setOpened(o => !o);
     }, [item.children]);
@@ -63,7 +63,7 @@ export const NavItem: FC<{
         </ListItem>
     );
 
-    if (item.children) {
+    if (item.children?.length) {
         const children = (
             <List component="div" disablePadding>
                 {item.children.map((item, i) => (

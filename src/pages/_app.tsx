@@ -43,6 +43,11 @@ export default function App({Component, pageProps}: AppProps) {
                     content="My logo saying Tar"
                     key="og-image-alt"
                 />
+
+                <meta
+                    name="viewport"
+                    content="width=device-width, initial-scale=1"
+                />
             </Head>
             <StylesProvider injectFirst>
                 <ThemeProvider theme={theme}>

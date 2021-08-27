@@ -8,9 +8,13 @@ import {IPageSummaryCompProps} from "./_types/IPageSummaryCompProps";
 /**
  * Retrieves the summary data of a page
  * @param page The page contents (as a string)
+ * @param urlBase The url base to get paths relative to
  * @returns The page summary
  */
-export async function getPageSummary(page: string): Promise<IPageSummary> {
+export async function getPageSummary(
+    page: string,
+    urlBase: string
+): Promise<IPageSummary> {
     /** TODO: find a more robust solution that doesn't require unstable manual string analysis */
     const summaryClosingTag = page.match(/\<\/PageSummary\>/);
     let summaryString = "";
@@ -49,6 +53,7 @@ export async function getPageSummary(page: string): Promise<IPageSummary> {
 
     const {source: rendered} = await renderMarkdown(
         summaryString,
+        urlBase,
         {PageSummary},
         false
     );

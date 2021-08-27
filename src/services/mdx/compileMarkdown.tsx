@@ -12,18 +12,18 @@ import {theme} from "../../theme";
 import {ThemeProvider} from "@emotion/react";
 import {TOCRemarkPlugin, ITOC} from "./TOCremarkPlugin";
 import {PageIndexProvider} from "./page/PageIndexContext";
+import {UrlBaseContext} from "./UrlBaseContext";
+import {getPathRelativeToPublic} from "../getPathRelativeToPublic";
 
-const Provider: FC = ({children}) => (
-    <ThemeProvider theme={theme}>
-        <MuiThemeProvider theme={theme}>
-            <PageIndexProvider>{children}</PageIndexProvider>
-        </MuiThemeProvider>
-    </ThemeProvider>
+const MdxContextProvider: FC<{urlBase: string}> = ({children, urlBase}) => (
+    <UrlBaseContext.Provider value={urlBase}>
+        <ThemeProvider theme={theme}>
+            <MuiThemeProvider theme={theme}>
+                <PageIndexProvider>{children}</PageIndexProvider>
+            </MuiThemeProvider>
+        </ThemeProvider>
+    </UrlBaseContext.Provider>
 );
-const provider = {
-    component: Provider,
-    props: {},
-};
 
 export async function compileMarkdown(
     dir: string,
@@ -50,29 +50,47 @@ export async function compileMarkdown(
 
     // Obtain and render the source
     let source: string;
+    let filePath: string;
     try {
-        source = await FS.readFile(dirPath, "utf-8");
+        filePath = dirPath;
+        source = await FS.readFile(filePath, "utf-8");
     } catch (e) {
-        source = await FS.readFile(Path.join(dirPath, "index.mdx"), "utf-8");
+        filePath = Path.join(dirPath, "index.mdx");
+        source = await FS.readFile(filePath, "utf-8");
     }
 
-    return renderMarkdown(source);
+    return renderMarkdown(
+        source,
+        "/" + getPathRelativeToPublic(Path.dirname(filePath))
+    );
 }
 
+/**
+ * Renders the given mdx markdown
+ * @param source The source code to be rendered
+ * @param urlBase The url path to get files relative to
+ * @param extraComponents The additional components to use during rendering
+ * @param generateToc Whether to also generate the table of contents
+ * @returns The output code, and potentially the table of contents
+ */
 export async function renderMarkdown(
     source: string,
+    urlBase: string,
     extraComponents: MdxRemote.Components = {},
     generateToc: boolean = true
-): Promise<{source: MdxRemote.Source; ToC: ITOC}> {
+): Promise<{source: MdxRemote.Source; ToC: ITOC; urlBase: string}> {
     const ToC = [] as ITOC;
     const renderedSource = await renderToString(source, {
         components: {...markdownComponents, ...extraComponents},
-        provider,
+        provider: {
+            component: MdxContextProvider,
+            props: {urlBase},
+        },
         mdxOptions: {
             remarkPlugins: generateToc
                 ? [sectionize, [TOCRemarkPlugin, {output: ToC}]]
                 : [],
         },
     });
-    return {source: renderedSource, ToC};
+    return {source: renderedSource, urlBase, ToC};
 }

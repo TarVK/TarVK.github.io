@@ -30,6 +30,7 @@ export const PageIndex: FC<{ToC: ITOC}> = ({ToC}) => {
                     top: theme.mixins.toolbar.height,
                     position: "sticky",
                     paddingTop: theme.spacing(2),
+                    paddingLeft: theme.spacing(2),
                     boxSizing: "border-box",
                     overflowY: "auto",
                     [theme.breakpoints.up("md")]: {
@@ -42,6 +43,20 @@ export const PageIndex: FC<{ToC: ITOC}> = ({ToC}) => {
                         <NavItem key={i} item={item} />
                     ))}
                 </List>
+
+                <div
+                    css={{
+                        zIndex: -1,
+                        backgroundColor: "white",
+                        position: "absolute",
+                        left: 2,
+                        top: 2,
+                        right: 2,
+                        bottom: 2,
+                        boxShadow: "0px 0px 2px 1px white",
+                        opacity: 0.5,
+                    }}
+                />
             </div>
         </div>
     );

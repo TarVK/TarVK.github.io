@@ -77,6 +77,19 @@ export const Sidebar: FC<{
                 {index.items.map((item, i) => (
                     <NavItem key={i} item={item} path={index.rootPath} />
                 ))}
+                <div
+                    css={{
+                        zIndex: -1,
+                        backgroundColor: "white",
+                        position: "absolute",
+                        left: 2,
+                        top: 2,
+                        right: 2,
+                        bottom: 2,
+                        boxShadow: "0px 0px 2px 1px white",
+                        opacity: 0.5,
+                    }}
+                />
             </List>
         </Box>
     );

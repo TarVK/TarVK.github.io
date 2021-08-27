@@ -20,7 +20,8 @@ export const PageIndexProvider: FC = ({children}) => {
     const [_, update] = useState(0);
     const pushSection = useCallback((section: string, depth?: number) => {
         if (depth) {
-            if (!stack.current[depth]) stack.current[depth] = [];
+            for (let d = 0; d <= depth; d++)
+                if (!stack.current[d]) stack.current[d] = [];
             stack.current[depth].push(section);
         } else stack.current.push([section]);
         update(v => v + 1);

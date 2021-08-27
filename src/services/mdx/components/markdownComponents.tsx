@@ -15,22 +15,25 @@ import {YTPlayer} from "./YTPlayer";
 import {InlineCode} from "./Code";
 import {ComponentReference} from "./ComponentReference";
 import {GuideNav} from "./GuideNav";
-import {Tooltip} from "@material-ui/core";
+import {BackgroundImage} from "./BackgroundImage";
+import {Theme, Tooltip} from "@material-ui/core";
 import {Text} from "../../../components/textStyles/Text";
 import {PagesCategory} from "../../../components/search/PagesCategory";
 import {IPageSummaryCompProps} from "services/pageSummary/_types/IPageSummaryCompProps";
 import {getReactNodeTextContent} from "services/pageSummary/getReactNodeTextContent";
 import Head from "next/head";
+import {useUrl} from "../UrlBaseContext";
+import {FunctionInterpolation} from "@emotion/react";
 
 const autoFitImageRenderer: FC<{
     alt?: string;
-    src?: string;
+    src: string;
     title?: string;
     width?: number;
 }> = ({alt, src, title, width}) => (
     <img
         alt={alt}
-        src={src}
+        src={useUrl(src)}
         title={title}
         style={{maxWidth: "100%"}}
         width={width}
@@ -41,6 +44,7 @@ const codeRender: FC<{
     children: string;
     showHeader?: string;
     spoiler?: string;
+    source?: string;
     highlight?: string;
     screenRecording?: string;
     screenShot?: string;
@@ -54,6 +58,7 @@ const codeRender: FC<{
     screenRecording,
     screenShot,
     video,
+    source,
     ...rest
 }) => {
     const languageData = className?.match(/language-(.*)/);
@@ -80,6 +85,7 @@ const codeRender: FC<{
             highlight={highlight
                 ?.split(",")
                 .map(p => p.split(":").map(n => Number(n)) as [number, number])}
+            source={source ? useUrl(source) : undefined}
             {...rest}
         />
     );
@@ -99,8 +105,8 @@ export const markdownComponents = {
     inlineCode: InlineCode,
     img: autoFitImageRenderer,
     section: Section,
-    a: (props: {href: string; children: ReactNode}) => (
-        <PlainLink styled {...props} />
+    a: ({href, ...props}: {href: string; children: ReactNode}) => (
+        <PlainLink styled {...props} href={useUrl(href)} />
     ),
     h1: createHeaderComp(1),
     h2: createHeaderComp(2),
@@ -111,6 +117,7 @@ export const markdownComponents = {
     pre: (props: any) => <Fragment {...props} />,
 
     // Custom (jsx)
+    Fragment,
     ScreenShot,
     ScreenRecording,
     Video,
@@ -126,6 +133,12 @@ export const markdownComponents = {
     GuideNav,
     Tooltip: TooltipRenderer,
     PagesCategory,
+    BackgroundImage,
+    Spacer: ({height = 100}: {height?: number}) => <div css={{height}} />,
+    Box: (props: {
+        css?: FunctionInterpolation<Theme>;
+        children?: ReactNode;
+    }) => <div {...props} />,
     PageSummary: ({
         title,
         tags = [],

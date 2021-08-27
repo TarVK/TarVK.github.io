@@ -28,7 +28,7 @@ export function TOCRemarkPlugin(options: {output: ITOC}): Transformer {
                 const name = header.children[0].value ?? "";
                 const depth = header.depth ?? 1;
                 while (depth < stack.length) stack.pop();
-                if (depth == stack.length) {
+                while (depth >= stack.length) {
                     const item = {
                         name,
                         children: [],

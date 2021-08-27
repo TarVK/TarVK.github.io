@@ -5,6 +5,7 @@ import {createSearchIndex} from "./createSearchIndex";
 import {IPagePreviewData} from "./_types/IPagePreviewData";
 import {cleanupPath} from "services/mdx/pagesIndex/createStaticPathsCollector";
 import {getSearchDataDir} from "./getSearchDataDir";
+import {getPathRelativeToPublic} from "../getPathRelativeToPublic";
 
 /**
  * Generates a search index and stores it in public/searchIndex.ts
@@ -31,7 +32,7 @@ export async function generateSearchIndex(
                 filePath = Path.join(filePath, "index.mdx");
             const fileContent = await FS.readFile(filePath, "utf-8");
 
-            const pageSummary = await getPageSummary(fileContent);
+            const pageSummary = await getPageSummary(fileContent, filePath);
             const relativePath = Path.relative(process.cwd(), filePath);
             const doc = {
                 path: relativePath,
@@ -45,6 +46,7 @@ export async function generateSearchIndex(
 
             categoryPagePreviews.push({
                 priority: pageSummary.priority ?? 0,
+                urlBase: "/" + getPathRelativeToPublic(Path.dirname(filePath)),
                 url: [name, ...file].map(part => cleanupPath(part)).join("/"),
                 file: relativePath,
                 mdx: pageSummary.compiledMdx,
