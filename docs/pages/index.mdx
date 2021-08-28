@@ -1,0 +1,52 @@
+<BackgroundImage
+    src="/images/IDE.png"
+    blur={3}
+    lightening={0.2}
+    height={300}
+    css={theme => ({
+        [theme.breakpoints.down("sm")]: {
+            top: -400,
+            height: "calc(400px + 100%)",
+        },
+    })}>
+    <Box css={{display: "flex", justifyContent: "center"}}>
+        <img src={"/images/logo.png"} width={500} />
+    </Box>
+</BackgroundImage>
+
+## Introduction
+
+<Fragment>
+    I'm Tar van Krieken, a{" "}
+    {((n, b) =>
+        n.getYear() -
+        b.getYear() -
+        (n.getMonth() < b.getMonth() || n.getDate() < b.getDate() ? 1 : 0))(
+        new Date(),
+        new Date("1998-09-27")
+    )}{" "}
+    year old Dutch software developer and computer science master student.
+</Fragment> On this site I will talk about projects I've worked on, general topics
+I find interesting, and some of my hobbies.
+
+I learned my first programming language when I was around 14 years old, through the Minecraft mod [Computer Craft](https://www.computercraft.info/). I learned the basics of programming through trial and error, without following any tutorials. To this day, I still prefer learning things by analyzing examples over step by step tutorials and explanations. I know this may not be the most efficient way to learn a new language or system, but it works well enough for me. Because of this approach, I didn't learn to write nicely maintainable code quickly, but I believe to be quite decent at it nowadays. It did however make me rather self sufficient. I may take me some time to learn the ins and outs of a new system, but I generally can get up and running with the system in no time.
+
+I do like to come up with new ideas, and have worked on many personal projects. In several situations I've been reinventing the wheel, but it almost always leads to either me learning something new, or actually an arguably better (at least in some respects) product.
+
+Below you can find separate pages on all projects and topics I thought were worth documenting.
+
+<Spacer />
+
+## Projects
+
+<PagesCategory category="projects" />
+<Spacer />
+
+## Articles
+
+<PagesCategory category="projects" />
+<Spacer />
+
+## Hobbies
+
+<PagesCategory category="projects" />
