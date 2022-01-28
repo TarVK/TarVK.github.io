@@ -14,9 +14,7 @@ import {useCallback} from "react";
 import {useBodySize} from "../../../hooks/useBodySize";
 
 type IVideoData = {title: string; ID: string; image: string; index: number};
-async function getVideoData(
-    ID: string
-): Promise<{
+async function getVideoData(ID: string): Promise<{
     title: string;
     image: string;
     author: string;
@@ -71,16 +69,18 @@ export const YTPlayer: FC<{
             if (showPlaylistVideos) {
                 (async () => {
                     const IDS = await p.getPlaylist();
-                    const videos = await Promise.all(
-                        IDS.map(async (ID, index) => {
-                            try {
-                                const data = await getVideoData(ID);
-                                return {ID, index, ...data} as IVideoData;
-                            } catch {}
-                        })
-                    );
+                    if (IDS) {
+                        const videos = await Promise.all(
+                            IDS.map(async (ID, index) => {
+                                try {
+                                    const data = await getVideoData(ID);
+                                    return {ID, index, ...data} as IVideoData;
+                                } catch {}
+                            })
+                        );
 
-                    setVideos(videos.filter((b): b is IVideoData => !!b));
+                        setVideos(videos.filter((b): b is IVideoData => !!b));
+                    }
                 })();
             }
 

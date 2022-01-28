@@ -31,7 +31,7 @@ export const PagesCategory: FC<{
             }
 
             const sortedPreviews = [...categoryPreviews].sort(
-                (a, b) => a.priority - b.priority
+                (a, b) => a.featuredIndex - b.featuredIndex
             );
             const limitedSortedPreviews = sortedPreviews.slice(
                 0,

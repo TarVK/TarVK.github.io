@@ -21,7 +21,9 @@ export const getStaticProps = async ({
     if (isHomePage) {
         const pagesPath = getPagesDir("");
         const files = await Promise.all(
-            (await FS.readdir(pagesPath)).map(async file => ({
+            (
+                await FS.readdir(pagesPath)
+            ).map(async file => ({
                 file,
                 isDir: (
                     await FS.lstat(Path.join(pagesPath, file))

@@ -1,20 +1,15 @@
 import {FC, ReactNode, Fragment} from "react";
 import {CodeBlock} from "../../../components/CodeBlock";
 import {createHeaderComp} from "./createHeaderComp";
-import {ScreenShot} from "./ScreenShot";
-import {ScreenRecording} from "./ScreenRecording";
 import {Section} from "./Section";
 import {Video} from "./Video";
-import {StatusNotice} from "./StatusNotice";
-import {Key} from "../../../components/home/Key";
+import {Key} from "./Key";
 import {PlainLink} from "../../../components/PlainLink";
 import {Collaborator} from "./Collaborator";
-import {LMVersion, LMVersionDefinition} from "./LMVersion";
 import {Timeline, TimelineItem} from "./Timeline";
 import {YTPlayer} from "./YTPlayer";
 import {InlineCode} from "./Code";
 import {ComponentReference} from "./ComponentReference";
-import {GuideNav} from "./GuideNav";
 import {BackgroundImage} from "./BackgroundImage";
 import {Theme, Tooltip} from "@material-ui/core";
 import {Text} from "../../../components/textStyles/Text";
@@ -46,8 +41,6 @@ const codeRender: FC<{
     spoiler?: string;
     source?: string;
     highlight?: string;
-    screenRecording?: string;
-    screenShot?: string;
     video?: string;
 }> = ({
     className,
@@ -55,8 +48,6 @@ const codeRender: FC<{
     showHeader,
     spoiler,
     highlight,
-    screenRecording,
-    screenShot,
     video,
     source,
     ...rest
@@ -73,15 +64,7 @@ const codeRender: FC<{
                     : showHeader != "false"
             }
             spoiler={spoiler ? spoiler != "false" : false}
-            result={
-                screenRecording ? (
-                    <ScreenRecording src={screenRecording} />
-                ) : screenShot ? (
-                    <ScreenShot src={screenShot} />
-                ) : video ? (
-                    <Video src={video} />
-                ) : undefined
-            }
+            result={video ? <Video src={video} /> : undefined}
             highlight={highlight
                 ?.split(",")
                 .map(p => p.split(":").map(n => Number(n)) as [number, number])}
@@ -118,19 +101,13 @@ export const markdownComponents = {
 
     // Custom (jsx)
     Fragment,
-    ScreenShot,
-    ScreenRecording,
     Video,
     Key,
-    StatusNotice,
     Collaborator,
-    LMVersion,
-    LMVersionDefinition,
     Timeline,
     TimelineItem,
     YTPlayer,
     ComponentReference,
-    GuideNav,
     Tooltip: TooltipRenderer,
     PagesCategory,
     BackgroundImage,

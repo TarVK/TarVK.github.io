@@ -41,3 +41,9 @@ export function cleanupPath(path: string, lowerCase: boolean = true): string {
             ?.replace(/ /g, "-") ?? "";
     return lowerCase ? cleaned.toLowerCase() : cleaned;
 }
+
+export function getPathIndex(path: string): number | undefined {
+    const match = Path.parse(path).name.match(/^(\d+)\-/)?.[1];
+    if (!match) return;
+    return Number(match);
+}

@@ -116,5 +116,6 @@ export type INavItem =
           hasIndex?: boolean;
           link?: string;
           opened?: boolean;
+          orderIndex?: number;
       }
-    | {divider: true};
+    | {divider: true; orderIndex?: number};

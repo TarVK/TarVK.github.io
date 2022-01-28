@@ -35,7 +35,7 @@ export default function App({Component, pageProps}: AppProps) {
                 />
                 <meta
                     property="og:image"
-                    content="https://launchmenu.github.io/logo.jpg"
+                    content="https://tarvk.github.io/images/logo.png"
                     key="og-image"
                 />
                 <meta

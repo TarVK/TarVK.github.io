@@ -45,7 +45,7 @@ export async function generateSearchIndex(
             index.addDoc(doc);
 
             categoryPagePreviews.push({
-                priority: pageSummary.priority ?? 0,
+                featuredIndex: pageSummary.featuredIndex ?? 1e4,
                 urlBase: "/" + getPathRelativeToPublic(Path.dirname(filePath)),
                 url: [name, ...file].map(part => cleanupPath(part)).join("/"),
                 file: relativePath,

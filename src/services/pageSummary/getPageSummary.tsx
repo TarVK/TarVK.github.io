@@ -26,19 +26,22 @@ export async function getPageSummary(
 
     let rDescription = "";
     let rTitle = "";
-    let rPriority: number | undefined;
+    let rFeaturedIndex: number | undefined;
     let rTagsList: string[] = [];
+    let rNavIndex: number | undefined;
     const PageSummary: FC<IPageSummaryCompProps> = ({
         title,
         children: description,
         content,
-        priority,
+        featuredIndex,
+        navIndex,
         tags = [],
     }) => {
         rTitle = title;
         rTagsList = tags;
-        rPriority = priority;
+        rFeaturedIndex = featuredIndex;
         rDescription = getReactNodeTextContent(description);
+        rNavIndex = navIndex;
 
         return (
             <PageSummaryLayout
@@ -60,9 +63,10 @@ export async function getPageSummary(
 
     return {
         title: rTitle,
-        priority: rPriority,
+        featuredIndex: rFeaturedIndex,
         description: rDescription,
         tags: rTagsList,
         compiledMdx: rendered,
+        navIndex: rNavIndex,
     };
 }
