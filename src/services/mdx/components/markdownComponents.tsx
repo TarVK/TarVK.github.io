@@ -120,15 +120,5 @@ export const markdownComponents = {
         title,
         tags = [],
         children: description,
-    }: IPageSummaryCompProps) => (
-        <Head>
-            <meta property="og:title" content={title} key="og-title" />
-            <meta
-                property="og:description"
-                content={getReactNodeTextContent(description)}
-                key="og-description"
-            />
-            <meta name="keywords" content={tags.join(", ")} key="keywords" />
-        </Head>
-    ),
+    }: IPageSummaryCompProps) => <Fragment></Fragment>,
 };

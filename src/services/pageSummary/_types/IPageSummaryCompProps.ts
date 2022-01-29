@@ -7,4 +7,5 @@ export type IPageSummaryCompProps = {
     content: ReactNode;
     featuredIndex?: number;
     navIndex?: number;
+    shareImage?: string;
 };

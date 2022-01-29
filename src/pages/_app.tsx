@@ -6,15 +6,17 @@ import {theme} from "../theme";
 import {MuiThemeProvider, StylesProvider} from "@material-ui/core";
 import {IIndex} from "../components/sideIndex/Sidebar";
 import Head from "next/head";
+import {IPageShareSummary} from "../services/_types/IPageShareSummary";
 
 export default function App({Component, pageProps}: AppProps) {
-    let nav: IIndex | undefined = (pageProps as IPageIndexProps).index;
+    const typedProps = pageProps as IPageIndexProps;
+    let nav: IIndex | undefined = typedProps.index;
+    const shareData: IPageShareSummary | undefined = typedProps.shareData;
     if (nav?.items.length == 0) nav = undefined;
 
     return (
         <Fragment>
             <Head>
-                <title>TarVK</title>
                 <meta
                     name="description"
                     content="Work by TarVK"
@@ -57,7 +59,7 @@ export default function App({Component, pageProps}: AppProps) {
             <StylesProvider injectFirst>
                 <ThemeProvider theme={theme}>
                     <MuiThemeProvider theme={theme}>
-                        <Layout index={nav}>
+                        <Layout index={nav} shareData={shareData}>
                             <Component {...pageProps} />
                         </Layout>
                     </MuiThemeProvider>
@@ -69,4 +71,5 @@ export default function App({Component, pageProps}: AppProps) {
 
 export type IPageIndexProps = {
     index?: IIndex;
+    shareData?: IPageShareSummary;
 };

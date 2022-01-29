@@ -1,6 +1,6 @@
 import {promises as FS} from "fs";
 import Path from "path";
-import {FC} from "react";
+import {FC, Fragment} from "react";
 import {MdxRemote} from "next-mdx-remote/types";
 import sectionize from "remark-sectionize";
 import renderToString from "next-mdx-remote/render-to-string";
@@ -16,6 +16,12 @@ import {UrlBaseContext} from "./UrlBaseContext";
 import {getPathRelativeToPublic} from "../getPathRelativeToPublic";
 import rehypeKatex from "rehype-katex";
 import remarkMath from "remark-math";
+import {
+    createGetSummaryComponent,
+    getPageSummary,
+} from "../pageSummary/getPageSummary";
+import {IPageProps} from "../_types/IPageProps";
+import {IPageShareSummary} from "../_types/IPageShareSummary";
 
 const MdxContextProvider: FC<{urlBase: string}> = ({children, urlBase}) => (
     <UrlBaseContext.Provider value={urlBase}>
@@ -30,7 +36,7 @@ const MdxContextProvider: FC<{urlBase: string}> = ({children, urlBase}) => (
 export async function compileMarkdown(
     dir: string,
     urlPath?: string[]
-): Promise<{source: MdxRemote.Source; ToC: ITOC}> {
+): Promise<IPageProps> {
     let dirPath = getPagesDir(dir);
 
     if (urlPath) {
@@ -80,11 +86,12 @@ export async function renderMarkdown(
     urlBase: string,
     extraComponents: MdxRemote.Components = {},
     generateToc: boolean = true
-): Promise<{source: MdxRemote.Source; ToC: ITOC; urlBase: string}> {
+): Promise<IPageProps> {
     const ToC = [] as ITOC;
 
+    const {PageSummary, target} = createGetSummaryComponent(() => <Fragment />);
     const renderedSource = await renderToString(source, {
-        components: {...markdownComponents, ...extraComponents},
+        components: {...markdownComponents, PageSummary, ...extraComponents},
         provider: {
             component: MdxContextProvider,
             props: {urlBase},
@@ -99,5 +106,12 @@ export async function renderMarkdown(
             ],
         },
     });
-    return {source: renderedSource, urlBase, ToC};
+    const shareData: IPageShareSummary = {
+        ...(target.title ? {title: target.title} : undefined),
+        ...(target.description ? {description: target.description} : undefined),
+        ...(target.tags ? {tags: target.tags} : undefined),
+        ...(target.shareImage ? {image: target.shareImage} : undefined),
+    };
+
+    return {source: renderedSource, urlBase, ToC, shareData};
 }

@@ -2,7 +2,7 @@ import {FC} from "react";
 import {renderMarkdown} from "services/mdx/compileMarkdown";
 import {getReactNodeTextContent} from "./getReactNodeTextContent";
 import {PageSummaryLayout} from "./PageSummaryLayout";
-import {IPageSummary} from "./_types/IPageSummary";
+import {IPageSummary, IPageSummaryData} from "./_types/IPageSummary";
 import {IPageSummaryCompProps} from "./_types/IPageSummaryCompProps";
 
 /**
@@ -24,35 +24,7 @@ export async function getPageSummary(
         summaryString = page.substring(0, end);
     }
 
-    let rDescription = "";
-    let rTitle = "";
-    let rFeaturedIndex: number | undefined;
-    let rTagsList: string[] = [];
-    let rNavIndex: number | undefined;
-    const PageSummary: FC<IPageSummaryCompProps> = ({
-        title,
-        children: description,
-        content,
-        featuredIndex,
-        navIndex,
-        tags = [],
-    }) => {
-        rTitle = title;
-        rTagsList = tags;
-        rFeaturedIndex = featuredIndex;
-        rDescription = getReactNodeTextContent(description);
-        rNavIndex = navIndex;
-
-        return (
-            <PageSummaryLayout
-                title={title}
-                tags={tags}
-                content={content}
-                link="">
-                {description}
-            </PageSummaryLayout>
-        );
-    };
+    const {PageSummary, target} = createGetSummaryComponent();
 
     const {source: rendered} = await renderMarkdown(
         summaryString,
@@ -62,11 +34,52 @@ export async function getPageSummary(
     );
 
     return {
-        title: rTitle,
-        featuredIndex: rFeaturedIndex,
-        description: rDescription,
-        tags: rTagsList,
+        ...target,
         compiledMdx: rendered,
-        navIndex: rNavIndex,
+    };
+}
+
+export function createGetSummaryComponent(
+    RenderComp: FC<
+        IPageSummaryCompProps & {
+            link: string;
+        }
+    > = PageSummaryLayout
+): {
+    PageSummary: FC<IPageSummaryCompProps>;
+    target: IPageSummaryData;
+} {
+    const target: IPageSummaryData = {
+        title: "",
+        description: "",
+        tags: [],
+    };
+
+    const PageSummary: FC<IPageSummaryCompProps> = ({
+        title,
+        children: description,
+        content,
+        featuredIndex,
+        navIndex,
+        tags = [],
+        shareImage,
+    }) => {
+        target.title = title;
+        target.tags = tags;
+        target.featuredIndex = featuredIndex;
+        target.description = getReactNodeTextContent(description);
+        target.navIndex = navIndex;
+        target.shareImage = shareImage;
+
+        return (
+            <RenderComp title={title} tags={tags} content={content} link="">
+                {description}
+            </RenderComp>
+        );
+    };
+
+    return {
+        PageSummary,
+        target,
     };
 }
