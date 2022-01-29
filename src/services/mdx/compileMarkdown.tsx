@@ -14,6 +14,8 @@ import {TOCRemarkPlugin, ITOC} from "./TOCremarkPlugin";
 import {PageIndexProvider} from "./page/PageIndexContext";
 import {UrlBaseContext} from "./UrlBaseContext";
 import {getPathRelativeToPublic} from "../getPathRelativeToPublic";
+import rehypeKatex from "rehype-katex";
+import remarkMath from "remark-math";
 
 const MdxContextProvider: FC<{urlBase: string}> = ({children, urlBase}) => (
     <UrlBaseContext.Provider value={urlBase}>
@@ -80,6 +82,7 @@ export async function renderMarkdown(
     generateToc: boolean = true
 ): Promise<{source: MdxRemote.Source; ToC: ITOC; urlBase: string}> {
     const ToC = [] as ITOC;
+
     const renderedSource = await renderToString(source, {
         components: {...markdownComponents, ...extraComponents},
         provider: {
@@ -87,9 +90,13 @@ export async function renderMarkdown(
             props: {urlBase},
         },
         mdxOptions: {
-            remarkPlugins: generateToc
-                ? [sectionize, [TOCRemarkPlugin, {output: ToC}]]
-                : [],
+            rehypePlugins: [rehypeKatex],
+            remarkPlugins: [
+                remarkMath,
+                ...(generateToc
+                    ? [sectionize, [TOCRemarkPlugin, {output: ToC}]]
+                    : ([] as any[])),
+            ],
         },
     });
     return {source: renderedSource, urlBase, ToC};

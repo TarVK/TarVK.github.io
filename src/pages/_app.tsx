@@ -14,7 +14,7 @@ export default function App({Component, pageProps}: AppProps) {
     return (
         <Fragment>
             <Head>
-                <title>LaunchMenu</title>
+                <title>TarVK</title>
                 <meta
                     name="description"
                     content="Work by TarVK"
@@ -47,6 +47,11 @@ export default function App({Component, pageProps}: AppProps) {
                 <meta
                     name="viewport"
                     content="width=device-width, initial-scale=1"
+                />
+
+                <link
+                    rel="stylesheet"
+                    href="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/katex.min.css"
                 />
             </Head>
             <StylesProvider injectFirst>
