@@ -113,7 +113,7 @@ const item2 = {actionBindings: [copyAction.createBinding("item2")]};
 const menu = contextMenuAction.get([item1, item2]); // Will result in a list with 1 JSX element
 ```
 
-So this system it what allows LaunchMenu to have very powerful yet flexible context menus. Any third party applet is able to create 'child actions' for the `contextMenuAction`` and thus extend what can be shown in the context menu. I have seen other context menu systems use approaches based on string labels in the past, and this results in implicit dependencies that make the code very hard to navigate. This system however has explicit dependencies in the code making things easy to trace, and even provides great intellisense/type-safety.
+So this system is what allows LaunchMenu to have very powerful yet flexible context menus. Any third party applet is able to create 'child actions' for the `contextMenuAction`` and thus extend what can be shown in the context menu. I have seen other context menu systems use approaches based on string labels in the past, and this results in implicit dependencies that make the code very hard to navigate. This system however has explicit dependencies in the code making things easy to trace, and even provides great intellisense/type-safety.
 
 I am planning on releasing an implementation of this system as an independent package at some point, but I am currently still trying to figure out some improvements. That project can be found at [github.com/TarVK/Hiery](https://github.com/TarVK/Hiery)
 
