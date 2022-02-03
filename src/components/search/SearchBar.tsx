@@ -1,5 +1,5 @@
 import {alpha, InputBase, makeStyles} from "@material-ui/core";
-import {FC, useState} from "react";
+import {FC, useCallback, useState} from "react";
 import SearchIcon from "@material-ui/icons/Search";
 import {Interpolation, Theme} from "@emotion/react";
 
@@ -55,9 +55,14 @@ export const SearchBar: FC<{
 }> = ({onSubmit, className, placeHolder = "Search…"}) => {
     const [value, setValue] = useState("");
     const classes = useStyles();
+    const captureClick = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+    }, []);
 
     return (
-        <div className={`${classes.search} ${className}`}>
+        <div
+            className={`${classes.search} ${className}`}
+            onClick={captureClick}>
             <div className={classes.searchIcon}>
                 <SearchIcon />
             </div>
@@ -72,6 +77,7 @@ export const SearchBar: FC<{
                 onKeyDown={e => {
                     if (e.keyCode == 13) onSubmit(value);
                     if (e.keyCode == 27) (e.target as HTMLElement).blur();
+                    e.stopPropagation();
                 }}
                 inputProps={{"aria-label": "search"}}
             />

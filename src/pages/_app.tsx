@@ -60,6 +60,22 @@ export default function App({Component, pageProps}: AppProps) {
                     rel="stylesheet"
                     href="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/katex.min.css"
                 />
+                <style>
+                    {`  
+                    .katex-display > .katex {
+                        display: inline-block;
+                        white-space: nowrap;
+                        max-width: 100%;
+                        overflow-x: auto;
+                        text-align: initial;
+                    }
+                    .katex {
+                        font: normal 1.21em KaTeX_Main, Times New Roman, serif;
+                        line-height: 1.2;
+                        white-space: normal;
+                        text-indent: 0;
+                    }`}
+                </style>
             </Head>
             <StylesProvider injectFirst>
                 <ThemeProvider theme={theme}>

@@ -126,12 +126,24 @@ export const Navbar: FC<{
                         </PlainLink>
                     </ListItem>
                 ))}
+                <SearchBar onSubmit={setSearch} />
             </List>
         </Box>
     );
 
     return (
         <AppBar position="sticky">
+            <Modal open={!!search} onClose={() => setSearch("")}>
+                <Container style={{outline: "none"}}>
+                    <Paper
+                        css={theme => ({
+                            marginTop: theme.spacing(4),
+                            padding: theme.spacing(1),
+                        })}>
+                        <SearchResults index="all.json" query={search} />
+                    </Paper>
+                </Container>
+            </Modal>
             <Toolbar
                 css={theme => ({
                     [theme.breakpoints.down("sm")]: {minHeight: 0},
@@ -195,23 +207,6 @@ export const Navbar: FC<{
                                     </Button>
                                 ))}
                                 <SearchBar onSubmit={setSearch} />
-
-                                <Modal
-                                    open={!!search}
-                                    onClose={() => setSearch("")}>
-                                    <Container style={{outline: "none"}}>
-                                        <Paper
-                                            css={theme => ({
-                                                marginTop: theme.spacing(4),
-                                                padding: theme.spacing(1),
-                                            })}>
-                                            <SearchResults
-                                                index="all.json"
-                                                query={search}
-                                            />
-                                        </Paper>
-                                    </Container>
-                                </Modal>
                             </Box>
                         </Grid>
                     </Container>

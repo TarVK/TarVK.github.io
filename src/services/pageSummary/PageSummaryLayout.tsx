@@ -11,19 +11,19 @@ export const PageSummaryLayout: FC<IPageSummaryCompProps & {link: string}> = ({
     link,
 }) => {
     return (
-        <Paper
-            css={theme => ({
-                background: background2,
-                paddingLeft: theme.spacing(1),
-                paddingRight: theme.spacing(1),
-                paddingTop: 0.5,
-                paddingBottom: 0.5,
-            })}>
-            <PlainLink href={link}>
+        <PlainLink href={link}>
+            <Paper
+                css={theme => ({
+                    background: background2,
+                    paddingLeft: theme.spacing(1),
+                    paddingRight: theme.spacing(1),
+                    paddingTop: 0.5,
+                    paddingBottom: 0.5,
+                })}>
                 <h3>{title}</h3>
-            </PlainLink>
-            {content}
-            {description}
-        </Paper>
+                {content}
+                {description}
+            </Paper>
+        </PlainLink>
     );
 };

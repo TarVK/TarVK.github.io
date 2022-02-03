@@ -5,6 +5,7 @@
     "private": true,
     "scripts": {
         "dev": "next dev",
+        "start": "cd docs && static-server -p 3000",
         "clean": "rimraf docs && rimraf .next",
         "build": "npm run clean && next build && next export -o docs/"
     },
@@ -47,6 +48,7 @@
         "@types/react-syntax-highlighter": "^13.5.0",
         "@types/youtube-player": "^5.5.3",
         "rimraf": "^3.0.2",
+        "static-server": "^2.2.1",
         "typescript": "^4.2.2"
     }
 }
