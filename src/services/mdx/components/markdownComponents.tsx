@@ -15,10 +15,12 @@ import {Theme, Tooltip} from "@material-ui/core";
 import {Text} from "../../../components/textStyles/Text";
 import {PagesCategory} from "../../../components/search/PagesCategory";
 import {IPageSummaryCompProps} from "services/pageSummary/_types/IPageSummaryCompProps";
+import {ImageGrid} from "./ImageGrid";
 import {getReactNodeTextContent} from "services/pageSummary/getReactNodeTextContent";
 import Head from "next/head";
 import {useUrl} from "../UrlBaseContext";
 import {FunctionInterpolation} from "@emotion/react";
+import * as PageComps from "../../../articleComponents";
 
 const autoFitImageRenderer: FC<{
     alt?: string;
@@ -100,6 +102,8 @@ export const markdownComponents = {
     pre: (props: any) => <Fragment {...props} />,
 
     // Custom (jsx)
+    CodeBlock,
+    ImageGrid,
     Fragment,
     Video,
     Key,
@@ -121,4 +125,7 @@ export const markdownComponents = {
         tags = [],
         children: description,
     }: IPageSummaryCompProps) => <Fragment></Fragment>,
+
+    // Page specific
+    ...PageComps,
 };

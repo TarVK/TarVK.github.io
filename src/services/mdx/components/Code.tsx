@@ -6,7 +6,8 @@ export const InlineCode: FC<{children: string}> = ({children}) => {
         <code
             css={theme => ({
                 display: "inline-block",
-                backgroundColor: theme.palette.background.default,
+                backgroundColor: "#f6f6f6",
+                borderRadius: 5,
                 wordBreak: "break-word",
             })}
             dangerouslySetInnerHTML={{

@@ -1,0 +1,811 @@
+<PageSummary
+    title="Lambda calculus"
+    content={
+        <CodeBlock language="tsx" showHeader={false} code={`\
+const True = (x=>y=>x);
+const False = (x=>y=>y);
+const iif = c=>t=>f=>c(t)(f);
+const not = f=>(x=>y=>f(y)(x));
+const and = x=>y=>x(y)(x);
+const or = x=>y=>x(x)(y);\
+        `}/>
+    }>
+
+Lambda calculus fundamentals explained using JavaScript
+
+</PageSummary>
+
+# Lambda calculus
+
+Lambda calculus is a formal modal of computation. Alonzo Church came up with this model in the 1930s in order to define what constitutes a computation. He showed his model of computation to be equally powerful as [Turing Machines](https://en.wikipedia.org/wiki/Turing_machine), a competing model of computation which I will discuss another time.
+
+These models of computation serve to perform mathematical analysis about computation. Lambda calculus also influenced modern programming language design a lot. Lambda terms can be recognized quite directly in many functional programming languages, but even many imperative languages such as JavaScript support their own form of Lambda expressions.
+
+In this article I want to go into what Lambda calculus computations look like, and relate them to JavaScript to make them easier to understand. I will also show some complex expressions in JavaScript to highlight its capabilities. An overview of all discussed Lambda calculus code can be found in the [overview section](#overview). I however won't go into why having mathematical models of computation is useful, but I can ensure you that it is.
+
+## Introduction
+
+### Syntax
+
+Lambda calculus specifies a way to define "terms". These terms can be thought of as programs, specifying your computation. Similar to modern programming languages, these terms can be constructed by following a [context free grammar](https://en.wikipedia.org/wiki/Context-free_grammar) (which I may also write an article about in the future).
+
+The grammar's rules defining these terms look as follows:
+
+$$
+\text{<term>} ::= \text{<variable>} | (\lambda \text{<variable>}.\text{<term>}) | (\text{<term>} \text{<term>})
+$$
+
+Here $\text{<variable>}$ simply indicates any string that doesn't conflict with the grammar, for instance `x`.
+
+This grammar essentially defines 3 constructs to create valid lambda terms, 2 of which are inductively defined:
+
+-   Variable ($\text{<variable>}$): Simply defines variables, similar to the ones in modern programming languages
+-   Abstraction ($(\lambda \text{<variable>}.\text{<term>})$): Encapsulates other lambda terms and binds a variable to them. This is very similar to defining a function in modern programming languages, except here the function is always forced to have exactly 1 argument and has no name.
+-   Application ($(\text{<term>} \text{<term>})$): Applies a function to an argument. This is again very similar to calling a function in any modern language.
+
+Since this syntax may be unnecessary confusing for people that are used to imperative programming, I will use other syntax for the rest of this article. Because these constructs are similar to those found in modern programming languages, I will express everything in nearly equivalent JavaScript terms instead:
+
+-   Variable: `<variable>`; Just any valid JavaScript variable name
+-   Abstraction: `<variable>=><term>`; A [JavaScript lambda expression](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions) with a single parameter
+-   Application `<term>(<term>)`; A JavaScript function application
+
+Note that with this syntax choice we do need to add additional parenthesis around terms in some situations, but I think this will be quite self-explanatory.
+
+Below is a little example of a valid lambda term:
+
+<!-- prettier-ignore -->
+```js showHeader=false
+(p=>z=>p(z))(x=>x)(y=>z=>y)
+```
+
+We will now start to add some informal semantics to this syntax, in order to give it some meaning.
+
+### Computation
+
+Lambda calculus' computations are based on rewrite rules. A given lambda term can be rewritten to another equivalent lambda term. If no more valid rewrite operations are possible that change the term structure, the term is in its 'normal form'. This normal form is the result of the computation.
+
+We will soon get back to how to interpret the result of a computation, but I will first explain the valid rewrite rules:
+
+-   $\alpha\text{-conversion}$ (`a=>b` $\rightarrow$ `c=>b[a:=c]`): This is essentially renaming a variable. Bare in mind that `b` here refers to another lambda term, not necessarily a single variable. `b[a:=c]` can be read as "the syntax of `b` with `a` replaced by `c`". E.g. `x=>y=>x` $\rightarrow$ `z=>y=>z`, where `a = x`, `b = y=>x`, and `c = z`.
+-   $\beta\text{-reduction}$ (`(a=>b)(c)` $\rightarrow$ `b[a:=c]`): This is essentially invoking of a function. Again bare in mind that `b` and `c` here refer to other lambda terms. E.g. `(x=>y=>x)(n=>m)` $\rightarrow$ `y=>n=>m`, where `a = x`, `b = y=>x`, and `c = n=>m`. So we replace `x` by `n=>m` in the expression `y=>x`, resulting in `y=>n=>m`.
+
+$\beta\text{-reduction}$ exists to make progress towards a normal form. Variable renaming can continue indefinitely and thus doesn't make obvious progress, but $\alpha\text{-conversion}$ is still essential. E.g. when perform the $\beta\text{-reduction}$:
+
+`y=>(x=>y=>x)(y)` $\rightarrow$ `y=>(y=>y)`
+
+We change the bindings of the variables. If we look at the same $\beta\text{-reduction}$ with different variable names this becomes more apparent:
+
+`y=>(x=>a=>x)(y)` $\rightarrow$ `y=>(a=>y)`
+
+In the new result we see that the right most `y` should be the parameter specified in the left most lambda abstraction. But when we don't apply renaming, syntactically it refers to the right most lambda abstraction.
+
+Using these two rewrite rules you can perform any computation on paper. We however don't have to do this on paper because $\beta\text{-reduction}$ nicely lines up with how JavaScript performs function calls. JavaScript doesn't even have to worry about $\alpha\text{-conversion}$ because it doesn't perform calculations on syntax, it automatically handles name clashes because it operates on pointers.
+
+You can simply open your JavaScript console right now (if in Chrome press `ctrl+shift+j`) and input:
+
+<!-- prettier-ignore -->
+```js showHeader=false
+(p=>z=>p(z))(x=>x)(y=>z=>y)
+```
+
+You will see this yields the same result as we would get by applying $\beta\text{-reductions}$:
+
+`(p=>z=>p(z))(x=>x)(y=>z=>y)`
+$\rightarrow$ `(z=>(x=>x)(z))(y=>z=>y)`
+$\rightarrow$ `(z=>z)(y=>z=>y)`
+$\rightarrow$ `y=>z=>y`
+
+For the rest of this article we will forget about these rewrite rules and instead think about JavaScript execution of lambda terms since these notions are very similar (but not equivalent).
+
+### Data
+
+The first thing you will notice is that this system is indeed very simple, at least in the sense that there aren't many options for constructing terms. I however claimed that you can perform any computation with this system, but computations require data, so where is the data?
+The syntax didn't specify anything about booleans, or numbers, or lists, and this was on purpose.
+
+So far the language we defined for constructing terms still appears largely meaningless. You might have already tried to give it some meaning because of my analogies with modern programming languages, but really the syntactic language has no inherent meaning. Just like a spoken language, the only reason we can convey information with these symbols is that all of us agreed on certain constructs representing certain things. In JavaScript a dedicated construct for the boolean literal true exists, namely `true`, but other languages may use different constructs. Python uses `True`, MapBasic uses `T`, and in C you might even just use `1`.
+
+With this in mind, we can simply define certain shapes of terms to represent boolean values:
+
+-   True = `x=>y=>x`
+-   False = `x=>y=>y`
+
+Syntactically we can tell these constructs apart, but more importantly their behavior is also different. In Lambda calculus we have no operator to compare lambda terms, so in order to tell them apart we must abuse their behavior.
+
+Our definition of `True` represents a function that takes 2 arguments and returns the first argument, meanwhile our definition of `False` takes 2 arguments and returns the second argument.
+
+Unfortunately because JavaScript doesn't internally perform $\beta\text{-reductions}$, details of bound variables are sometimes not expanded. E.g. JavaScript might tell us the result is `x=>z`, but it may know that `z=y=>x`, so really the result should be `x=>y=>x`. For this reason when we want to get our results out of JavaScript we will have to make use of some data conversion functions. Defining a conversion function for our booleans is very simple:
+
+```js
+$isTrue = b => b(true)(false);
+```
+
+Now we can test this function on our Lambda calculus definition of the booleans:
+
+```js
+console.log($isTrue(x => y => x)); // true
+console.log($isTrue(x => y => y)); // false
+```
+
+Next we can define functions that operate on our data by abusing the structure of our data. We can for instance start of by defining an inline if-statement (conditional operator):
+
+-   iif = `c=>t=>f=>c(t)(f)`
+
+This function takes 3 parameters:
+
+-   `c`: The boolean condition
+-   `t`: The value to return if the condition is true
+-   `f`: The value to return if the condition is false
+
+Here we abuse that when we apply `c` to `t` and `f`, if `c` is true it will return the first argument, and if it's false it returns the second. This is exactly the behavior we're after. Here's a little usage example:
+
+```js
+True = x => y => x;
+False = x => y => y;
+iif = c => t => f => c(t)(f);
+
+console.log($isTrue(iif(True)(True)(False))); // true
+console.log($isTrue(iif(False)(True)(False))); // false
+console.log($isTrue(iif(True)(False)(True))); // false
+console.log($isTrue(iif(False)(False)(True))); // true
+```
+
+Here we're using JavaScript variable assignments for our definitions, but we could also use purely our Lambda calculus term syntax to accomplish the same, at the cost of reduced readability:
+
+<!-- prettier-ignore -->
+```js
+console.log($isTrue(
+    (True=>(False=>(iif=>iif(True)(True)(False))(c=>t=>f=>c(t)(f)))(x=>y=>y))(x=>y=>x)
+)); // true
+```
+
+Additionally you may have recognized that our `iif` function in essence doesn't do anything, it only adds an indirection of applying functions:
+
+`(c => t => f => c(t)(f))(a)(b)(c)` = `(c => t => c(t))(a)(b)(c)` = `(c => c)(a)(b)(c)` = `a(b)(c)`
+
+We indeed get exactly the same results this way:
+
+```js
+console.log(readBool(True(True)(False))); // true
+console.log(readBool(False(True)(False))); // false
+console.log(readBool(True(False)(True))); // false
+console.log(readBool(False(False)(True))); // true
+```
+
+But defining `iif` like we did may still be preferable, because it makes it more explicit that it's a function with 3 parameters and keeps the higher level code using the `iif` easier to read than using `True` and `False` as functions in and off themselves. If we build up enough layers of abstractions onto our core data types, we no longer have to worry about the fact that they are actually represented by functions under the hood.
+
+## More data
+
+### Booleans
+
+<!-- prettier-ignore -->
+```js title=booleanEncoding.js
+True = (x=>y=>x)
+False = (x=>y=>y)
+
+iif = c=>t=>f=>c(t)(f)
+not = f=>(x=>y=>f(y)(x))
+and = x=>y=>x(y)(x)
+or = x=>y=>x(x)(y)
+
+// Data conversion helpers
+$isTrue = b=>b(true)(false)
+```
+
+I've already introduced our two booleans and `iif`, now we add our three basic logic operators to the mix.
+
+`not` can be understood as just swapping the order of the arguments of a boolean, because `True` is indeed just `False` with the arguments swapped (and vice versa).
+
+`and` might be easier to understand when expanded a little to an equivalent definition:
+
+<!-- prettier-ignore -->
+```js showHeader=false
+and = x=>y=>iif(x)(y)(False)
+```
+
+So this is saying "if x is true, then the `and` of true and y is simply y, and if x is false then the `and` is simply false". We however know that the third parameter of the `iif` is only returned when `x` is false, so we can replace `False` by `x`. And as discussed earlier, `iif(a)(b)(c)` is equivalent to `a(b)(c)`.
+
+`or` can be understood in a similar way. We can expand it to this equivalent definition:
+
+<!-- prettier-ignore -->
+```js showHeader=false
+or = x=>y=>iif(x)(True)(y)
+```
+
+Below is a little demonstration using these constructs.
+
+```js showHeader=false
+$isTrue(not(or(and(True)(False))(True))); // false (== !((true && false) || true))
+```
+
+### Pairs
+
+Pairs allow two values to be combined into a single variable, such that for instance multiple values can be returned from a function.
+
+<!-- prettier-ignore -->
+```js title=pairEncoding.js
+Pair = x=>y=>(f=>f(x)(y))
+first = t=>t(f=>s=>f)
+second = t=>t(f=>s=>s)
+
+// Data conversion helpers
+$toJsPair = (pair)=>[first(pair), second(pair)]
+$fromJsPair = ([v1, v2])=>Pair(v1)(v2)
+```
+
+Note that in JavaScript it's common to encode pairs (or tuples in general) as arrays with a fixed length.
+
+To create a `Pair` we simply pass 2 values. Then the functions `first` and `second` simply apply the pair to a function that returns either the first or second argument, thus extracting one of its values.
+
+E.g.
+
+```js showHeader=false
+console.log($isTrue(first(Pair(True)(False)))); // True
+console.log($isTrue(second(Pair(True)(False)))); // False
+```
+
+### Numbers
+
+Now we will define the natural numbers (positive integers) in Lambda calculus:
+
+<!-- prettier-ignore -->
+```js title=numberEncoding.js
+V0 = (s=>b=>b)
+V1 = (s=>b=>s(b))
+V2 = (s=>b=>s(s(b)))
+V3 = (s=>b=>s(s(s(b))))
+V4 = (s=>b=>s(s(s(s(b)))))
+// ...etc
+
+isZero = n=>n(p=>False)(True)
+add1 = n=>(s=>b=>s(n(s)(b)))
+sub1 = n=>(s=>b=>first(n(v=>Pair(second(v))(s(second(v))))(Pair(b)(b))))
+
+add = n=>m=>(s=>b=>m(s)(n(s)(b)))
+mul = n=>m=>(s=>b=>m(n(s))(b))
+pow = n=>m=>(s=>b=>m(n)(s)(b))
+
+sub = n=>m=>(s=>b=>m(sub1)(n)(s)(b))
+div = n=>m=>F(r=>n=>(s=>lazyIf(isZero(s))(v=>V0)(v=>add1(r(s))))(sub(n)(m)))(add1(n))
+
+// Data conversion helpers
+$V = $fromJsNumber = n=>new Array(n).fill().reduce(add1, V0)
+$toJsNumber = n=>n(v=>v+1)(0)
+```
+
+Let's first focus on the encoding of numbers. We use an inductive definition for these. A natural number is either:
+
+-   Zero
+-   A natural number + 1
+
+With this definition we can define any natural number. E.g. 8 can be defined as `7 + 1`, and 7 is in turn defined as `6 + 1`. This unrolls all the way until we hit 1 which is defined as `0 + 1`, and 0 is already part of our natural number definition. More concretely we would define 8 as:
+
+```txt showHeader=false
+((((((((0 + 1) + 1) + 1) + 1) + 1) + 1) + 1) + 1)
+```
+
+Now in our Lambda calculus definition we make this a bit more abstract. We define a number to be a function that takes 2 arguments:
+
+-   A successor function corresponding to the + 1 function
+-   A base case corresponding to the 0
+
+Then we define a specific number `n` as applying the successor function (+1) `n` times to our base case. So a specific value such as 6 could be encoded as:
+
+<!-- prettier-ignore -->
+```js showHeader=false
+s=>b=>s(s(s(s(s(s(b))))))
+```
+
+Now this definition allows us to use the inductive structure to our advantage. Many programs use natural numbers for indicating how many iterations of a loop to do, our natural number is capable of performing the "loop" itself!
+We simply pass the body of the loop as the first argument of the number `n`, and it will apply this `n` times to the base case we pass.
+For instance to check if a number `n` is positive one could write some JavaScript code like this:
+
+```js title=isEvenJS.js
+isEven = n => {
+    let even = true;
+    for (let i = 0; i < n; i++) even = !even;
+    return even;
+};
+```
+
+We can do almost the same in Lambda calculus, just using the number directly to perform our loop:
+
+<!-- prettier-ignore -->
+```js title=isEven.js
+isEven = n=>n(even=>not(even))(True)
+console.log($isTrue(isEven(V3))) // false
+console.log($isTrue(isEven(V4))) // true
+```
+
+Now that we understand the basic idea behind number encoding, we can look at the functions that can manipulate these numbers.
+
+<!-- prettier-ignore -->
+```js showHeader=false
+isZero = n=>n(p=>False)(True)
+```
+
+isZero essentially just abuses the fact that 0 is the only number that doesn't wrap the base case in any successor function at all. Thus the `p=>False` that we pass isn't executed at all for zero, hence it directly returns the second argument `True`. But for any other number `p=>False` will be executed, returning False instead.
+
+<!-- prettier-ignore -->
+```js showHeader=false
+add1 = n=>(s=>b=>s(n(s)(b)))
+```
+
+add1 simply follows the structure of the inductive numbers. When we pass it a number, we construct a new number (taking a successor function and base case) that wraps the given number in another call of the successor function.
+
+<details>
+<summary>
+The rest of the functions are a bit more complex, so you might want to skip these. But if you care to find out how these work you can expand this section.
+</summary>
+
+sub1 is a surprisingly difficult function to implement using this inductive definition of numbers. An imperative form of this function essentially looks like this:
+
+```js title=sub1LoopJS.js
+sub1 = n => {
+    let prev = 0; // Can't go negative (result is a natural number)
+    for (let i = 0; i < n; i++) prev = i;
+    return prev;
+};
+console.log(sub1(10)); // 9
+```
+
+In Lambda calculus we don't have access to some iteration count variable `i` however, so we have to track that ourselves. So an imperative form actually looks more like this:
+
+```js title=sub1LoopWithoutVarJS.js
+sub1 = n => {
+    let prev = 0,
+        i = 0;
+    for (let _ = 0; _ < n; _++) {
+        prev = i;
+        i = i + 1;
+    }
+    return prev;
+};
+```
+
+Now finally, the "body" of a "loop" in Lambda calculus can only return/operate on one value. So we have to combine the 2 values into 1 variable using pairs. Here we use js arrays to represent these pairs:
+
+```js title=sub1LoopPairsJS.js
+sub1 = n => {
+    let data = [0, 0];
+    for (let _ = 0; _ < n; _++) data = [data[1], data[1] + 1];
+    return data[0];
+};
+```
+
+Now we simply translate this loop and these pairs to their Lambda calculus equivalent, and we arrive at the following function:
+
+<!-- prettier-ignore -->
+```js showHeader=false
+sub1 = n=>(s=>b=>first(n(v=>Pair(second(v))(s(second(v))))(Pair(b)(b))));
+```
+
+This function takes a number, and given a successor function and a base case starts a computation. This computation starts with the pair of 2 of the base cases, and each iteration replaces this by a new pair formed by the second value of the previous pair and the second value of the previous pair with 1 added to it. Lastly we return only the first value from the pair that we obtain.
+
+<!-- prettier-ignore -->
+```js showHeader=false
+add = n=>m=>(s=>b=>m(s)(n(s)(b)));
+```
+
+Addition of `n` and `m` is defined by passing the successor function to `m` as per usual, but replace `m`'s base case by the result of applying the successor function `n` times to `b`. This will end up applying the successor function exactly `n + m` times to `b`.
+
+<!-- prettier-ignore -->
+```js showHeader=false
+mul = n=>m=>(s=>b=>m(n(s))(b));
+```
+
+Multiplication of `n` and `m` is defined in a similar way to addition. Here we apply the base case to `m` regularly, but instead replace it's successor function. This successor function is obtained by applying the regular successor function to `n`, resulting in a function `x` (=`n(s)`) that applies `s` `n` times to whatever `x` is applied to. So if `m` applies `x` `m` times to the base case `b`, and `x` applies `s` `n` times to the previous value, the total function will apply `s` `m * n` times to `b`.
+
+<!-- prettier-ignore -->
+```js showHeader=false
+pow = n=>m=>(s=>b=>m(n)(s)(b));
+```
+
+`n` to the power `m` is once again defined similarly to addition. Here `n` is used as the successor function for `m`, and `s` is used as the base case for `m`. Let's say that application of `m` accumulates a "supersuccessor". In the base case this supersuccessor is simply defined to be the regular successor function, but in every iteration we apply `n` to this supersuccessor. When `n` is applied to the supersuccessor this results in a function that applies the previous supersuccessor `n` times. Hence we end up with a function that applies the original successor exactly `n^m` times. We then apply this supersuccessor to our base case to obtain the final result.
+
+<!-- prettier-ignore -->
+```js showHeader=false
+sub = n=>m=>(s=>b=>m(sub1)(n)(s)(b));
+```
+
+And finally we have subtraction. Here we once again use the fact that a number can be used to apply a function a certain number of times. Here we simply apply the subtract 1 function `m` times to our initial value `n`.
+
+division is a little more complex and requires some auxiliary functions. We will skip these, but you should be able to define them after reading the [more advanced examples section](#more-advanced-examples).
+
+</details>
+
+### Lists
+
+<!-- prettier-ignore -->
+```js title=numberEncoding.js
+Nil = (c=>n=>n)
+Cons = x=>y=>(c=>n=>c(x)(y(c)(n)))
+isEmpty = l=>l(x=>y=>False)(True)
+head = l=>l(h=>t=>h)(l) // Second argument is irrelevant
+fold = s=>b=>l=>l(s)(b)
+tail = l=>first(fold(v=>p=>Pair(second(p))(Cons(v)(second(p))))(Pair(Nil)(Nil))(l))
+concat = a=>b=>fold(Cons)(b)(a)
+
+// Data conversion helpers
+$fromJsArray = ar=>ar.reduceRight((cur, val)=>Cons(val)(cur), Nil);
+$toJsArray = l=>l(i=>a=>[i, ...a])([])
+```
+
+Lists are encoded in a very similar way to numbers, inductively. A list is essential either:
+
+-   An empty list (nil)
+-   A value `x` added to another list `y`
+
+This way you essentially nest constructors, where every construct adds 1 item to the front. We could use a JavaScript pair (encoded using a list) to represent this second constructor. A list of the numbers 1, 2, and 3 would then look something like this:
+
+```js showHeader=false
+[1, [2, [3, null]]];
+```
+
+We can construct these lists in Lambda calculus form using the `Nil` and `Cons`constructors. The list `[1,2,3]` would be constructed as:
+
+<!-- prettier-ignore -->
+```js showHeader=false
+Cons(V1)(Cons(V2)(Cons(V3)(Nil)))
+```
+
+This structure is essentially equivalent to how we define numbers, except we use `Nil` instead of zero and add 1 extra parameter to the successor function, namely the value to add to list. You can see how the `Cons` construct is very similar to our `add1` function, but has an extra parameter `x` specifying the item to pass to our successor function.
+
+If we would want to get the length of a list we can simply use the fact that the first argument will be applied to all items in the list:
+
+<!-- prettier-ignore -->
+```js showHeader=false
+length = l=>l(h=>t=>add1(t))(V0)
+console.log($toJsNumber(length(Cons(V1)(Cons(V2)(Cons(V3)(Nil)))))) // 3
+```
+
+In this function we're ignoring the actual data of the list that's passed to the `h` parameter, but we could easily use it to for instance retrieve the product of numbers:
+
+<!-- prettier-ignore -->
+```js showHeader=false
+product = l=>l(h=>t=>mul(h)(t))(V1)
+console.log($toJsNumber(product(Cons(V1)(Cons(V2)(Cons(V3)(Nil)))))) // 6
+```
+
+Now that I've explained the encoding, I can explain how the operators work.
+
+<!-- prettier-ignore -->
+```js showHeader=false
+isEmpty = l=>l(x=>y=>False)(True)
+```
+
+The `isEmpty` function operates very similarly to the `isZero` function. It simply makes sure that any non empty list overwrites the default value `True` by `False`.
+
+<!-- prettier-ignore -->
+```js showHeader=false
+head = l=>l(h=>t=>h)(l) // Second argument is irrelevant
+```
+
+The `head` function just ignores the recursive structure for the most part and relies on the fact that the top-level item will apply the first argument to its value, which we then return as the result.
+
+<!-- prettier-ignore -->
+```js showHeader=false
+fold = s=>b=>l=>l(s)(b)
+```
+
+`Fold` is simply the functional programming name for this sort of recursive loop application for lists. This is what we call `reduce` in JavaScript. But as we've seen the list is defined in a way that natively supports this, so the fold function will only have to apply arguments to the list. It just abstracts away from the fact that a list is a function.
+
+<!-- prettier-ignore -->
+```js showHeader=false
+tail = l=>first(fold(v=>p=>Pair(second(p))(Cons(v)(second(p))))(Pair(Nil)(Nil))(l))
+```
+
+The `tail` function extracts the remaining list if the first item were removed. This is essentially identical to our `sub1` function for numbers, except that considers this additional data that make up the items of the list. This concept is explained in detail in the extended version of the numbers explanation.
+
+<!-- prettier-ignore -->
+```js showHeader=false
+concat = a=>b=>fold(Cons)(b)(a)
+```
+
+The `concat` function can concatenate two lists. This essentially just iteratively goes through all items in `a` and adds them to the front of `b`.
+
+## More advanced examples
+
+Now that we defined all our data types, we can do some fun things with them and perform some actual computations.
+
+### Fibonacci sequence
+
+The Fibonacci sequence is a sequence of numbers where every number is the sum of the previous two. It can be inductively defined as:
+
+-   $f_0 = 0$
+-   $f_1 = 1$
+-   $f_{i+2} = f_{i+1} + f_{i}$ for a natural number $i$
+
+The first 8 numbers of this sequence look like this:
+
+```txt showHeader=false
+0 1 1 2 3 5 8 13
+```
+
+In an imperative language one could efficiently calculate a given Fibonacci number by performing this addition:
+
+```js
+const fib = v => {
+    let seq = [0, 1];
+    for (let i = 0; i < v; i++) {
+        seq[i + 2] = seq[i + 1] + seq[i];
+    }
+    return seq[v];
+};
+console.log(fib(7)); // 13 (we use 0 indexing, 0 returns the first value)
+```
+
+This function actually calculates 1 more number than necessary. Since `i` reaches all the way up to `i = v-1`, the highest index we define on `seq` is `i+2 = v-1+2 = v+1` even though we only extract the `v`th value. This is not a problem however. A larger issue is that it accumulates a whole list of numbers, which is a bit wasteful. At any point we only have to know the current number and the next one, the rest of the data can be dropped. With this in mind, we can improve the code a little bit:
+
+```js
+const fib = v => {
+    let val = 0,
+        next = 1;
+    for (let i = 0; i < v; i++) {
+        const nextNext = next + val;
+        val = next;
+        next = nextNext;
+    }
+    return val;
+};
+```
+
+Now one issue remains, which is that this loop alters two values at a time but our "loops" in Lambda calculus can only return 1 value. Thus we have to refactor our code a little to use pairs of values. In JavaScript we will encode these pairs using a list with 2 indices:
+
+```js
+const fib = v => {
+    let data = [0, 1];
+    for (let i = 0; i < v; i++) {
+        data = [data[1], data[0] + data[1]];
+    }
+    return data[0];
+};
+```
+
+Now this code can be translated directly to a Lambda calculus form:
+
+<!-- prettier-ignore -->
+```js title=Fibonacci.js
+fib = n=>first(n(x=>Pair(second(x))(add(first(x))(second(x))))(Pair(V0)(V1)))
+console.log($toJsNumber(fib($V(7)))); // 13
+```
+
+Notice that these Lambda terms are often read from right to left, instead of left to right, because they operate on nested functions. `f(g(x))` would first execute `g` and then execute `f`. So reading the above term from right to left you can see that we first define the pair of 0 and 1, then iteratively update the pair by the second index and the sum of the previous pair, and finally return the first index of the pair.
+
+### Quicksort
+
+We can also define the quicksort function in Lambda calculus terms. We however need some additional helper functions. We will need to define a way of recursing (/looping) in a way that's independent of our input data. We can't perform recursion in the way we would do it in JavaScript, because we don't have variable assignment like in JavaScript. We have been saying things like `and = ...`, but this was only to make things easier to read. In the [pure Lambda calculus expressions section](#Pure-Lambda-calculus-expressions) an example is provided of what a program may look like without any of these JavaScript assignments.
+
+Instead we have to use the "Y combinator" to introduce a sort of recursion into Lambda calculus:
+
+<!-- prettier-ignore -->
+```js title=Y-combinator.js
+Y = f=>(x=>f(x(x)))(x=>f(x(x)))
+```
+
+This implementation does not work in JavaScript however. It doesn't work because the rewrite system that's typically used for Lambda calculus computations is "lazy". At points in the calculation there may be multiple terms that can be rewritten. If the terms to rewrite are chosen in a smart way, only terms that are useful will be rewritten, guaranteeing termination in case the computation can terminate. There however also are other "greedy" ways to perform the rewriting that will result in infinite rewriting steps and won't terminate. JavaScript unfortunately always evaluates arguments before passing their results to a function, resulting in infinite "rewriting" for this version of the Y-combinator. So we will use the following version instead:
+
+<!-- prettier-ignore -->
+```js title=Y-combinatorForJS.js
+Y = f=>(x=>a=>f(x(x))(a))(x=>a=>f(x(x))(a))
+```
+
+This version takes an extra argument `a` to kickstart the recursion. This makes sure that we have to explicitly invoke the recursive call, such that it doesn't simply recurse until we run out of stack space.
+
+This Y combinator is based on a self copying pattern. We can make a simplified version of this to see how it works:
+
+```js title=recursion.js
+(x => x(x))(x => x(x));
+```
+
+This pattern essentially copies itself. If we perform a single rewrite step, we will see that we end up in the same place.
+To make it easier to follow, consider the following rewrite instead:
+
+`(x=>(x)(x))(b)`
+$\rightarrow$ `(b)(b)`
+
+Now if we were to say `b = x=>(x)(x)` and substitute this in the above rewrite step, we end up with:
+
+`(x=>(x)(x))(x=>(x)(x))`
+$\rightarrow$ `(x=>(x)(x))(x=>(x)(x))`
+
+So we have an infinitely repeating pattern. Now by adding some additional functions around it, we can harness this power for controlled recursion. Consider the recursive function:
+
+```js title=factorial.js
+const fac = val => (val <= 1 ? 1 : val * fac(val - 1));
+console.log(fac(5)); // 120 (= 1 * 2 * 3 * 4 * 5)
+```
+
+Now we could formulate this with our JavaScript Y combinator as follows:
+
+```js title=y-CombinatorFactorial.js
+const fac = Y(recurse => val => val <= 1 ? 1 : val * recurse(val - 1));
+console.log(fac(5)); // 120 (= 1 * 2 * 3 * 4 * 5)
+```
+
+We also have to define a lazy if statement that does not evaluate both arguments before making its decision. We can do this by using a similar trick of using a callback function:
+
+<!-- prettier-ignore -->
+```js title=lazyIf.js
+lazyIf = c=>t=>f=>c(t)(f)(c) // Last argument is irrelevant
+```
+
+This is very similar to our original if, except that it takes callback functions for its true and false cases. E.g.:
+
+```js showHeader=false
+console.log($toJsNumber(lazyIf(True)(c => V3)(c => V4))); // 3
+```
+
+Now we can finally define our quicksort function. It consists of 2 parts:
+
+-   partition: Given a number `x` and a list `l`, splits `l` into 2 sub-lists `s` and `g` such that `s` contains all values of `l` that are smaller or equal to `x` and `g` contains all values of `l` that are larger than `x`
+-   quicksort: Given a list `l` returns a list with the same values of `l` but sorted in ascending order
+
+<!-- prettier-ignore -->
+```js title=partition.js
+partition = p=>l=>fold
+    (h=>t=>iif
+        (isZero(sub(h)(p)))
+        (Pair(Cons(h)(first(t)))(second(t)))
+        (Pair(first(t))(Cons(h)(second(t)))))
+    (Pair(Nil)(Nil))
+    (l)
+```
+
+In a more imperative formulation, the function looks as follows:
+
+```js
+partition = (p, l) => {
+    out = [[], []];
+    for (let h of l) {
+        if (h - p <= 0) out = [[h, ...out[0]], out[1]];
+        else out = [out[0], [h, ...out[1]]];
+    }
+    return out;
+};
+```
+
+Note that in Lambda calculus we use natural numbers, which can't go below zero. Thus it suffices to check whether `h-p` equals zero.
+
+We then use this partition function in our quicksort definition:
+
+<!-- prettier-ignore -->
+```js title=quicksort.js
+quicksort = l=>Y
+    (rec=>l=>lazyIf
+        (isEmpty(l))
+        (c=>Nil)
+        (c=>
+            (h=>
+                (p=>
+                    concat
+                        (rec(first(p)))
+                        (Cons(h)(rec(second(p))))
+                )(partition(h)(tail(l)))
+            )(head(l))))
+    (l)
+```
+
+In a more imperative formulation, the function looks as follows:
+
+```js
+quicksort = l => {
+    if (l.length == 0) return [];
+    else {
+        let p = partition(l[0], l.slice(1));
+        return [...quicksort(p[0]), l[0], ...quicksort(p[1])];
+    }
+};
+```
+
+Now we can define some helper functions to easily convert to and from number arrays:
+
+```js title=arrayConversionHelpers.js
+$fromJsNumberArray = ar => fromJsArray(ar.map(v => $V(v)));
+$toJsNumberArray = l => toJsArray(l).map(v => toJsNumber(v));
+```
+
+And finally we can test our implementation:
+
+<!-- prettier-ignore -->
+```js
+console.log($toJsNumberArray(quicksort($fromJsNumberArray([11, 5, 4, 2, 7, 6, 3, 8, 9, 0, 10, 12, 1])))); // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+```
+
+### Pure Lambda calculus expressions
+
+Throughout this article I used JavaScript variable assignments to make sub-expressions easier to declare and read, but real Lambda calculus has no such assignments. Below is an example of what our Quicksort function would look like in pure Lambda calculus form without helper functions. Only 2 data conversion functions have been left in place. The code snippet below can be run on its own without any additional context being required.
+
+<!-- prettier-ignore -->
+```js title=quicksortStandalone.js
+$fromJsNumberArray = l=>c=>n=>l.reduceRight((l, v)=>c(new Array(v).fill().reduce(n=>f=>b=>f(n(f)(b)), f=>b=>b))(l), n);
+$toJsNumberArray = l=>l(i=>a=>[i, ...a])([]).map(n=>n(v=>v+1)(0));
+
+quicksort = (False=>(True=>(lazyIf=>(iif=>(Pair=>(first=>(second=>(isZero=>(sub1=>(sub=>(head=>(Cons=>(Nil=>(fold=>(isEmpty=>(concat=>(tail=>(Y=>(partition=>l=>Y(rec=>l=>lazyIf(isEmpty(l))(c=>Nil)(c=>(h=>(p=>concat(rec(first(p)))(Cons(h)(rec(second(p)))))(partition(h)(tail(l))))(head(l))))(l))(p=>l=>fold(h=>t=>iif(isZero(sub(h)(p)))(Pair(Cons(h)(first(t)))(second(t)))(Pair(first(t))(Cons(h)(second(t)))))(Pair(Nil)(Nil))(l)))(f=>(x=>a=>f(x(x))(a))(x=>a=>f(x(x))(a))))(l=>first(fold(v=>p=>Pair(second(p))(Cons(v)(second(p))))(Pair(Nil)(Nil))(l))))(a=>b=>fold(Cons)(b)(a)))(l=>l(x=>y=>False)(True)))(s=>b=>l=>l(s)(b)))(c=>n=>n))(x=>y=>(c=>n=>c(x)(y(c)(n)))))(l=>l(h=>t=>h)(l)))(n=>m=>(s=>b=>m(sub1)(n)(s)(b))))(n=>(s=>b=>first(n(v=>Pair(second(v))(s(second(v))))(Pair(b)(b))))))(n=>n(p=>False)(True)))(t=>t(f=>s=>s)))(t=>t(f=>s=>f)))(x=>y=>(f=>f(x)(y))))(c=>t=>f=>c(t)(f)))(c=>t=>f=>c(t)(f)(c)))(x=>y=>x))(x=>y=>y);
+
+console.log($toJsNumberArray(quicksort($fromJsNumberArray([11, 5, 4, 2, 7, 6, 3, 8, 9, 0, 10, 12, 1])))); // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+```
+
+Now we've defined a standalone JavaScript comparison based sorting function, that doesn't use a single JavaScript comparison operator (`==`, `<=`, or `>=`).
+And it additionally is some high quality code obfuscation if you ask me, especially if you made all variable names single characters. It however also is some very inefficient code, so I am afraid there is no future where pure Lambda calculus is used for obfuscation.
+
+## Overview
+
+<!-- prettier-ignore -->
+```js title=Lambda-calculus.js
+// Booleans
+True = (x=>y=>x)
+False = (x=>y=>y)
+
+iif = c=>t=>f=>c(t)(f)
+lazyIf = c=>t=>f=>c(t)(f)(c) // Last argument is irrelevant
+not = f=>(x=>y=>f(y)(x))
+and = x=>y=>x(y)(x)
+or = x=>y=>x(x)(y)
+
+// Pairs
+Pair = x=>y=>(f=>f(x)(y))
+first = t=>t(f=>s=>f)
+second = t=>t(f=>s=>s)
+
+// Numbers
+V0 = (s=>b=>b)
+V1 = (s=>b=>s(b))
+V2 = (s=>b=>s(s(b)))
+V3 = (s=>b=>s(s(s(b))))
+V4 = (s=>b=>s(s(s(s(b)))))
+// ...etc
+
+isZero = n=>n(p=>False)(True)
+add1 = n=>(s=>b=>s(n(s)(b)))
+sub1 = n=>(s=>b=>first(n(v=>Pair(second(v))(s(second(v))))(Pair(b)(b))))
+
+add = n=>m=>(s=>b=>m(s)(n(s)(b)))
+mul = n=>m=>(s=>b=>m(n(s))(b))
+pow = n=>m=>(s=>b=>m(n)(s)(b))
+
+sub = n=>m=>(s=>b=>m(sub1)(n)(s)(b))
+div = n=>m=>F(r=>n=>(s=>lazyIf(isZero(s))(v=>V0)(v=>add1(r(s))))(sub(n)(m)))(add1(n))
+
+// Lists
+Nil = (c=>n=>n)
+Cons = x=>y=>(c=>n=>c(x)(y(c)(n)))
+isEmpty = l=>l(x=>y=>False)(True)
+head = l=>l(h=>t=>h)(l) // Second argument is irrelevant
+fold = s=>b=>l=>l(s)(b)
+tail = l=>first(fold(v=>p=>Pair(second(p))(Cons(v)(second(p))))(Pair(Nil)(Nil))(l))
+concat = a=>b=>fold(Cons)(b)(a)
+
+// Computations
+fib = n=>first(n(x=>Pair(second(x))(add(first(x))(second(x))))(Pair(V0)(V1)))
+
+Y = f=>(x=>a=>f(x(x))(a))(x=>a=>f(x(x))(a))
+partition = p=>l=>fold(h=>t=>iif(isZero(sub(h)(p)))(Pair(Cons(h)(first(t)))(second(t)))(Pair(first(t))(Cons(h)(second(t)))))(Pair(Nil)(Nil))(l)
+quicksort = l=>Y(rec=>l=>lazyIf(isEmpty(l))(c=>Nil)(c=>(h=>(p=>concat(rec(first(p)))(Cons(h)(rec(second(p)))))(partition(h)(tail(l))))(head(l))))(l)
+
+// Data conversion helpers
+$isTrue = b=>b(true)(false)
+$toJsPair = (pair)=>[first(pair), second(pair)]
+$fromJsPair = ([v1, v2])=>Pair(v1)(v2)
+$fromJsNumber = $V = n=>new Array(n).fill().reduce(add1, V0)
+$toJsNumber = n=>n(v=>v+1)(0)
+$fromJsArray = ar=>ar.reduceRight((cur, val)=>Cons(val)(cur), Nil);
+$toJsArray = l=>l(i=>a=>[i, ...a])([])
+$fromJsNumberArray = ar=>$fromJsArray(ar.map(v=>$V(v)))
+$toJsNumberArray = l=>$toJsArray(l).map(v=>$toJsNumber(v))
+```
+
+<!-- prettier-ignore -->
+```js title=exampleTests.js
+console.log($toJsNumberArray(quicksort($fromJsNumberArray([11,5,4,2,7,6,3,8,9,0,10,12,1])))) // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+console.log($toJsNumber(fib($V(7)))); // 13
+```
+
+## Conclusion
+
+This concludes my demonstration of Lambda calculus' capabilities.
+
+I personally think Lambda calculus is beautiful in its simplicity. Systems like these have been inspiring to me for a long time, and I try to apply their philosophy in my own projects too. My main take away is that if you have a strong foundation, everything else will fall into place automatically. Using a strong generalized foundation you can always add higher level functionality on top, such as we did when defining our Data types. I know many systems that start with high-level functionality in mind without thinking about the core first. This often leads to buggy and hard to maintain software, and it usually is less flexible/dynamic than it could be.
+
+I additionally believe Lambda calculus beautifully highlights that meaning requires context. Lambda terms have no inherent meaning, they have some inherent behavior, but their meaning is only derived from additional context we add to them. A lambda terms is merely an abstract function, but when we know it represents for instance a number, we can successfully interpret it as such. All data types I explained today can be defined differently but as long as these changes are consistent through the other lambda calculus terms this does not matter. You could for instance easily swap the definitions of True and False, but as long as their usage is also swapped appropriately everything will continue to work.
+
+So despite Lambda calculus not being useful in modern programming anymore, it can still reveal many interesting insights!

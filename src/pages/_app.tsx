@@ -27,6 +27,11 @@ export default function App({Component, pageProps}: AppProps) {
                     content="Work, TarVK, Tar"
                     key="keywords"
                 />
+                <link
+                    rel="icon"
+                    type="image/x-icon"
+                    href="https://tarvk.github.io/images/logo.jpg"
+                />
 
                 <meta property="og:title" content="Tar" key="og-title" />
                 <meta property="og:type" content="website" key="og-type" />

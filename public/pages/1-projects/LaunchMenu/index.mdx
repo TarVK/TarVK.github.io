@@ -1,0 +1,261 @@
+<PageSummary 
+    title="LaunchMenu"
+    content={<img src="~/preview.png"/>}
+    tags={["launch", "menu"]}
+>
+
+LaunchMenu is the largest project I've worked on so far, and has a couple of interesting features I am very proud of.
+
+</PageSummary>
+
+# LaunchMenu
+
+<YTPlayer video="_3A9OwoSsaI" aspectRatio="auto" />
+
+LaunchMenu is a quick utility applet platform inspired by Mac's Spotlight. It is
+fully controllable from keyboard, features advanced interactive menus, and allows
+for multiple item selection and manipulation. More information about the program
+can be found on its dedicated website: [launchmenu.github.io](https://launchmenu.github.io)
+
+As you might be able to tell, I used LaunchMenu's website as a foundation for this site.
+
+## History
+
+Back in 2017 a friend of mine, Sancarn, was working on making a Spotlight-like application for custom actions. It seemed like an interesting idea and I had some tips to improve his initial concept. We ended up making a new slightly better version together. Since I was (and still am) constantly learning new things regarding software development, we ended up making multiple different versions, each one slightly better than then last. In mid 2020 we started work on the version that can currently be downloaded. A more in depth overview of LaunchMenu's history can be found on its website: [launchmenu.github.io/about/#history](https://launchmenu.github.io/about/#history).
+
+## Interesting systems
+
+In order to support all the features we planned for LaunchMenu I had to come up with several systems and architectures. Some of these systems turned out to not quite hit the mark, but below are several systems that did end up working out.
+
+### Action system
+
+<ImageGrid images={["~/multiselect.png", "~/multiselectContextMenu.png"]} />
+The action system is what allows users to select and interact with multiple items
+at once in LaunchMenu, primarily through the context menu. The difficulty in developing
+such a system is that the main search menu will show all sorts of items from unknown
+sources (third party applets). So the menu can't be responsible for providing all
+the actions for the context menu, instead the items themselves have to do this. Of
+course every item could provide a list of context menu actions that the user can
+select to execute, but this by itself would simply result in a context menu with
+separate (duplicate) items that when executed only apply to one of the items in the
+selection. You could label actions such that you only show one context menu item
+but run all callback functions when it is executed, but this still wouldn't be sufficient
+for all actions. Consider for example a copy action, copying multiple items in sequence
+will not result in all items being in the clipboard at once. So making a proper system
+that can handle all these cases is actually quite a challenge.
+
+The resulting system that we came up with is somewhat difficult to grasp but has been thoroughly documented on LaunchMenu's site: [launchmenu.github.io/docs/concepts/interaction/actions](https://launchmenu.github.io/docs/concepts/interaction/actions).
+The idea is essentially to create `actions` which specify behavior, while making items define `action bindings` which associate data to these actions. An action can then be applied to a list of items (which may or may not contain bindings for that action). The actions themselves will define how to process the given bindings into a final result. Below is a very basic example showing off this concept:
+
+```ts title=actionBindingBasics.ts
+const list = createAction({
+    name: "list",
+    core: (items: string[]) => {
+        const itemsString = items.join(", ");
+        return {result: itemsString};
+    },
+});
+
+const item1 = {actionBindings: [list.createBinding("item1")]};
+const item2 = {actionBindings: [list.createBinding("item2")]};
+const item3 = {actionBindings: [list.createBinding("item3")]};
+list.get([item1, item2, item3]); // == "item1, item2, item3"
+
+const item4 = {
+    actionBindings: [list.createBinding("item2"), list.createBinding("item1")],
+};
+const item5 = {actionBindings: []};
+const item6 = {actionBindings: [list.createBinding("item3")]};
+list.get([item4, item5, item6]); // == "item2, item1, item3"
+```
+
+This by itself already allows us to handle some more complicated commands such as copying multiple items at once, but it's still somewhat limiting. The main power of this system comes from the ability of defining a hierarchy in actions. One action `X` can indicate another action `Y` to be its parent in order to make bindings for that parent. Then if `Y` is executed on an item with a binding for `X`, this will be forwarded to `Y`. This sounds a bit abstract, so below is a simple example building off of the previous to demonstrate this:
+
+```ts title=actionBindingsHierarchy.ts
+const subList = createAction({
+    name: "subList",
+    parents: [list],
+    core: (items: string[]) => {
+        const itemsString = items.join(", ");
+        return {
+            children: [list.createBinding(`(${itemsString})`)],
+        };
+    },
+});
+
+const item1 = {actionBindings: [list.createBinding("item1")]};
+const item2 = {actionBindings: [subList.createBinding("item2")]};
+const item3 = {actionBindings: [subList.createBinding("item3")]};
+list.get([item1, item2, item3]); // == "item1, (item2, item3)"
+```
+
+We use this system in multiple ways in LaunchMenu, but most notably to define the `contextMenuAction`. This action is what menus use to retrieve all the items to show in the context menu for a given selection. So each `action` that is defined can simply indicate `contextMenuAction` to be their parent and create a binding (specifying a menu item) that should show in the context menu. So a simplified mockup of this system may look as follows:
+
+```tsx title=contextMenuAction.tsx
+const contextMenuAction = createAction({
+    name: "contextMenu",
+    core: (items: JSX.Element[])=>items
+});
+
+const copyAction = createAction({
+    name: "copy",
+    parents: [contextMenuAction]
+    core: (text: string[])=>{
+        const combinedText = text.join("\n");
+        return { children: [contextMenuAction.createBinding(
+            <MenuItem onClick={()=>copy(combinedText)}>Copy</MenuItem>
+        )] };
+    }
+});
+
+const item1 = {actionBindings: [copyAction.createBinding("item1")]};
+const item2 = {actionBindings: [copyAction.createBinding("item2")]};
+const menu = contextMenuAction.get([item1, item2]); // Will result in a list with 1 JSX element
+```
+
+So this system it what allows LaunchMenu to have very powerful yet flexible context menus. Any third party applet is able to create 'child actions' for the `contextMenuAction`` and thus extend what can be shown in the context menu. I have seen other context menu systems use approaches based on string labels in the past, and this results in implicit dependencies that make the code very hard to navigate. This system however has explicit dependencies in the code making things easy to trace, and even provides great intellisense/type-safety.
+
+I am planning on releasing an implementation of this system as an independent package at some point, but I am currently still trying to figure out some improvements. That project can be found at [github.com/TarVK/Hiery](https://github.com/TarVK/Hiery)
+
+### Subscribable state
+
+Throughout all of LaunchMenu we've made use of my library [Model-react](https://tarvk.github.io/model-react/examples/build/). This library wasn't made specifically for LaunchMenu, but LaunchMenu wouldn't function without it. This is what allows us to keep LaunchMenu very flexible, yet keep the entire state and UI synchronized.
+
+At some point I will link to an independent page on Model-react, but I have not yet created said page.
+
+The main idea behind model-react is to make it as easy as possible to listen to changes of a value. It's in essence a form of dependency inversion. If I have some property `prop` which I use in multiple places of my application - let's say place `X` and `Y`, I would prefer to not have to also explicitly call `X` and `Y` when updating `prop`. Because Within code, that approach would result in cyclic dependencies and maintenance nightmares since `X` and `Y` depend on `prop`, but `prop` depends on `X` and `Y` because it would have to call some code there to forward the changes. Moreover that approach would not allow third party applets to be informed of state changes at all.
+A common pattern to deal with this is the [`Observer` design pattern](https://en.wikipedia.org/wiki/Observer_pattern#:~:text=The%20observer%20pattern%20is%20a,calling%20one%20of%20their%20methods.):
+
+![Observer](~/observer.svg)
+
+The problem with this design pattern is that it requires a lot of verbose and boilerplate-like code to register and deregister observers. Model-react changes this by essentially making you pass a "hook" when calling a getter for your data, which encapsulates all that is of importance to subscribe to the data. "Data sources" such as a simple `Field` can then be used to create a source of data that can deal with these hooks. There are also a couple of different ways of creating hooks, most notably using the `Observer` class that transforms this whole system back to a simple callback when the property changes and `useDataHook` which allows react components to rerender when data changes.
+
+Below is a simple example/demo which highlights how Model-react hides almost all of the boilerplate that usually comes with using the Observer design pattern.
+
+```tsx title=modelReact.tsx
+import {Field, useDataHook, IDataHook} from "model-react";
+import React, {FC} from "react";
+
+class Person {
+    protected name = new Field("");
+    protected age = new Field(0);
+    public constructor(name: string, age: number) {
+        this.name.set(name);
+        this.age.set(age);
+    }
+    public setName(name: string): void {
+        this.name.set(name);
+    }
+    public getName(h?: IDataHook): string {
+        return this.name.get(h);
+    }
+    public setAge(age: number): void {
+        this.age.set(age);
+    }
+    public getAge(h?: IDataHook): number {
+        return this.age.get(h);
+    }
+}
+
+const PersonEditor: FC<{person: Person}> = ({person}) => {
+    const [h] = useDataHook();
+    return (
+        <div>
+            <input
+                value={person.getName(h)}
+                onChange={e => person.setName(e.target.value)}
+            />
+            <input
+                type="number"
+                value={person.getAge(h)}
+                onChange={e => person.setAge(Number(e.target.value))}
+            />
+        </div>
+    );
+};
+
+const PersonProfile: FC<{person: Person}> = ({person}) => {
+    const [h] = useDataHook();
+    return (
+        <div>
+            Name: {person.getName(h)} <br />
+            Age: {person.getAge(h)}
+        </div>
+    );
+};
+
+const john = new Person("John", 1);
+export default (
+    <div>
+        <PersonEditor person={john} />
+        <PersonProfile person={john} />
+    </div>
+);
+```
+
+<LaunchMenuModelReactDemo />
+
+Model-react also has some other note-worthy benefits compared to the direct Observer pattern:
+
+-   Everything concerning subscripting to data can be ignored if you only need it once
+-   Hooks can collect errors in data sources in order to not disrupt the normal flow
+-   Data sources can indicate to hook that data is still processed which is useful for loading indicators
+-   It's easier to not group updates of independent data together which results in fewer redundant updates
+
+### Fuzzy search
+
+![Fuzzy search](~/banner.png)
+
+We've created a custom search system for LaunchMenu. This system is based on the idea that searches are often recursive, especially in LaunchMenu. This is because menus can have many layers of nested sub-menus. We wanted this system to make use of the subscribable data such that search results can dynamically update. This is for instance useful when an applet `X` has to fetch data for its results, as it allows us to already show results of another applet and update the overall results once `X`'s fetch is finished. Apart from adding data later, it may also be useful to remove data later. After a search is performed an item could be removed from a menu that was search in, which should result in the item no longer showing in the search either. Our system will properly update results in all these scenarios.
+
+The search system is built around `ISearchable`s. Each `ISearchable` can return a result with a priority to specify its importance as well as a list of child searchables. It can also return a patternMatch, but we will get back to that later. It's up to `ISearchable`s to determine whether a given query matches their item and it's als responsible for growing the searchable graph by providing children that can be searched. Below is the interface specifying `ISearchable`
+
+```tsx title=ISearchable.tsx
+export type ISearchable<Q, I> = {
+    /** The ID for this search (used to diff children) */
+    ID: IUUID;
+    /**
+     * Searches for items, by possibly returning an item, and a collection of sub-searches.
+     * May also return a matched pattern to ignore all items that don't match a pattern.
+     * @param query The query to be checked against
+     * @param hook A data hook to listen for changes
+     * @param executer The executer performing the search, for possible advanced optimizations
+     * @returns The search result
+     **/
+    search(
+        query: Q,
+        hook: IDataHook,
+        executer?: SearchExecuter<Q, I>
+    ): Promise<ISearchableResult<Q, I>>;
+};
+
+/**
+ * The result of an invocation of a searchable
+ */
+export type ISearchableResult<Q, I> = {
+    /** The item that may have been found */
+    item?: I;
+    /** The child items to search through */
+    children?: ISearchable<Q, I>[];
+    /** A pattern that this item matches, hiding all items that don't match any pattern */
+    patternMatch?: IPatternMatch;
+};
+```
+
+The `SearchExecuter` is responsible for performing the search and updating results as the search is altered or `ISearchable`s update their results. It takes in a single `ISearchable` instance as an input, but this searchable item can contain an entire subtree of other `ISearchable`s which can change at any point. The `SearchExecuter` builds a graph of these searchable items and updates this graph when necessary, adding and removing result items in the process. The details of this search system can be found in LaunchMenu's docs: [launchmenu.github.io/docs/concepts/interaction/search-system](https://launchmenu.github.io/docs/concepts/interaction/search-system).
+
+In LaunchMenu many layers have been built on top of this core search system to make searches easier to work with without losing the flexibility of the core system. In order to make it easy to search through existing menus a `SearchAction` was created which given a list of items retrieves a `ISearchable` that represents the entire navigatable subtree of that list of items. The default implementation for this item search uses Fuzzy-rater under the hood to allow for matches that contain typos. This is an independent library that we made specifically to be used in LaunchMenu: [tarvk.github.io/fuzzy-rater/demo/build](https://tarvk.github.io/fuzzy-rater/demo/build/).
+
+Fuzzy-rater is able to rate the quality of a match in linear time (in relation to the length of the word). Depending on the fuzzy-ness, creating the rater might take a relatively long time, but once it's constructed ratings can be performed very quickly. It manages to do this by making use of some NFA to DFA conversion magic. This process is described on the [project's github page](https://github.com/TarVK/fuzzy-rater#fuzzy-matching). We additionally added a feature that is able to identify exactly what regions matched the query text, which can then be used for highlighting results (and typos).
+
+Lastly the `patternMatch` of a result is used by LaunchMenu to provide search highlighting as well as to filter out data. A searchable item can specify that it noticed that the given query matched some specific pattern (it doesn't matter what pattern), which results in other items that didn't match any pattern to be removed from the search. These pattern matches essentially add an extra filter on top of all search results. This is useful because it allows you to specify the type of data your looking for in LaunchMenu. You can for instance use the search pattern `note: ` to remove any results from the search that aren't notes:
+
+<ImageGrid images={["~/noSearchPattern.png", "~/searchPattern.png"]} />
+
+## Things I learned
+
+Throughout the whole process of making different versions of LaunchMenu I've learned that I should not set my own expectation/ambitions too high in projects like these, because I've only got so much time I can invest. I've found that it's better to make a strong flexible foundation that can be build on later, instead of trying to get all features in straight away. Additionally I've learned it's essential to keep all parts of a system simple, and instead build complexity by stacking multiple layers containing such simple functionality. This keeps independent parts of the code easy to reason about compared to having a big mess that tries to achieve everything at once.
+
+While working on [Adjust](https://launchmenu.github.io/about/#adjust) I had some really big ideas, some of which I still think are great but might not be entirely realistic. I essentially put my ambitions way too high and tried to achieve this ideal picture I had in my head, which actually in practice didn't even turn out to be all that great. Additionally I didn't separate concerns too well and ended up with a couple of large classes that were supposed to take care of almost everything in the system. I may still want to look into making libraries for some of the ideas I had for Adjust, but this project has been put on halt for now.
+
+We're currently still working on this version of LaunchMenu, but I've already identified many different things I would like to do differently in the next version. So I will inevitably keep making mistakes with every version and learn new things. Some of these things I learn will be broad concepts as described above, and some will be more specific things such as that the UI of menu-items can be implemented in a more maintainable way. I am currently even still thinking about ways to improve all of the systems I described above, even though they were a success on the whole.
