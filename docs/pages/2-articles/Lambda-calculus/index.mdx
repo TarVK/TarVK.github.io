@@ -17,7 +17,7 @@ Lambda calculus fundamentals explained using JavaScript
 
 # Lambda calculus
 
-Lambda calculus is a formal modal of computation. Alonzo Church came up with this model in the 1930s in order to define what constitutes a computation. He showed his model of computation to be equally powerful as [Turing Machines](https://en.wikipedia.org/wiki/Turing_machine), a competing model of computation which I will discuss another time.
+Lambda calculus is a formal model of computation. Alonzo Church came up with this model in the 1930s in order to define what constitutes a computation. He showed his model of computation to be equally powerful as [Turing Machines](https://en.wikipedia.org/wiki/Turing_machine), a competing model of computation which I will discuss another time.
 
 These models of computation serve to perform mathematical analysis about computation. Lambda calculus also influenced modern programming language design a lot. Lambda terms can be recognized quite directly in many functional programming languages, but even many imperative languages such as JavaScript support their own form of Lambda expressions.
 
@@ -725,7 +725,7 @@ quicksort = (False=>(True=>(lazyIf=>(iif=>(Pair=>(first=>(second=>(isZero=>(sub1
 console.log($toJsNumberArray(quicksort($fromJsNumberArray([11, 5, 4, 2, 7, 6, 3, 8, 9, 0, 10, 12, 1])))); // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 ```
 
-Now we've defined a standalone JavaScript comparison based sorting function, that doesn't use a single JavaScript comparison operator (`==`, `<=`, or `>=`).
+Now we've defined a standalone JavaScript comparison based sorting function that doesn't use a single JavaScript comparison operator (`==`, `<=`, or `>=`).
 And it additionally is some high quality code obfuscation if you ask me, especially if you made all variable names single characters. It however also is some very inefficient code, so I am afraid there is no future where pure Lambda calculus is used for obfuscation.
 
 ## Overview
