@@ -1,9 +1,11 @@
 import {FC} from "react";
 import {renderMarkdown} from "services/mdx/compileMarkdown";
+import {getPathRelativeToPublic} from "../getPathRelativeToPublic";
 import {getReactNodeTextContent} from "./getReactNodeTextContent";
 import {PageSummaryLayout} from "./PageSummaryLayout";
 import {IPageSummary, IPageSummaryData} from "./_types/IPageSummary";
 import {IPageSummaryCompProps} from "./_types/IPageSummaryCompProps";
+import Path from "path";
 
 /**
  * Retrieves the summary data of a page
@@ -28,7 +30,7 @@ export async function getPageSummary(
 
     const {source: rendered} = await renderMarkdown(
         summaryString,
-        urlBase,
+        "/" + Path.dirname(getPathRelativeToPublic(urlBase)),
         {PageSummary},
         false
     );

@@ -5,9 +5,9 @@ import youTubePlayer from "youtube-player";
 import {YouTubePlayer} from "youtube-player/dist/types";
 import React from "react";
 import {makeStyles} from "@material-ui/core/styles";
-import GridList from "@material-ui/core/GridList";
-import GridListTile from "@material-ui/core/GridListTile";
-import GridListTileBar from "@material-ui/core/GridListTileBar";
+import ImageList from "@material-ui/core/ImageList";
+import ImageListItem from "@material-ui/core/ImageListItem";
+import ImageListItemBar from "@material-ui/core/ImageListItemBar";
 import IconButton from "@material-ui/core/IconButton";
 import StarBorderIcon from "@material-ui/icons/StarBorder";
 import {useCallback} from "react";
@@ -173,23 +173,23 @@ export const YTPlayer: FC<{
                     },
                 })}>
                 {videos && (
-                    <GridList cellHeight={130} className="gridList" cols={3}>
+                    <ImageList cellHeight={130} className="gridList" cols={3}>
                         {videos.map(({title, image, index}) => (
-                            <GridListTile
+                            <ImageListItem
                                 key={image}
                                 className="tile"
                                 onClick={() => selectVideo(index)}>
                                 <img src={image} alt={title} />
-                                <GridListTileBar
+                                <ImageListItemBar
                                     title={title}
                                     classes={{
                                         root: "titleBar",
                                         title: "title",
                                     }}
                                 />
-                            </GridListTile>
+                            </ImageListItem>
                         ))}
-                    </GridList>
+                    </ImageList>
                 )}
             </div>
         </div>
