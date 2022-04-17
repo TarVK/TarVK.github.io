@@ -3,6 +3,7 @@ import {FC, useEffect} from "react";
 import {VideoControls} from "../../../components/VideoControls";
 import {IVideoConfig, IVideoControls, useVideo} from "../../../hooks/useVideo";
 import {background3} from "../../../theme";
+import {useUrl} from "../UrlBaseContext";
 
 export const Video: FC<{
     src: string;
@@ -24,7 +25,7 @@ export const Video: FC<{
     className,
 }) => {
     const {Video, controls} = useVideo({
-        src,
+        src: useUrl(src),
         muted: !volumeControls,
         onTimeUpdate,
     });

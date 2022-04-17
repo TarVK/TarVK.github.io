@@ -51,18 +51,23 @@ async function createNavItem(dir: string): Promise<INavItem | undefined> {
         (files.includes("index.mdx")
             ? await getOrderIndexOverwrite(Path.join(dir, "index.mdx"))
             : undefined) ?? pathOrderIndex;
+
+    const hasIndex = files.includes("index.mdx");
+    const children = (
+        await Promise.all(
+            files.map(fileName => createNavItem(Path.join(dir, fileName)))
+        )
+    )
+        .filter((n): n is INavItem => !!n)
+        .sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
+    if (!hasIndex && children.length == 0) return undefined;
+
     return {
         name,
         ...(orderIndex != undefined ? {orderIndex} : null),
         opened: false,
-        hasIndex: files.includes("index.mdx"),
-        children: (
-            await Promise.all(
-                files.map(fileName => createNavItem(Path.join(dir, fileName)))
-            )
-        )
-            .filter((n): n is INavItem => !!n)
-            .sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0)),
+        hasIndex,
+        children,
     };
 }
 
