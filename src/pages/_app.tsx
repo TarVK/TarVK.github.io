@@ -74,6 +74,7 @@ export default function App({Component, pageProps}: AppProps) {
                         line-height: 1.2;
                         white-space: normal;
                         text-indent: 0;
+                        padding-right: 2px; // Fix scrollbar errors
                     }`}
                 </style>
             </Head>
