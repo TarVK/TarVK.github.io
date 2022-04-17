@@ -173,7 +173,7 @@ export const YTPlayer: FC<{
                     },
                 })}>
                 {videos && (
-                    <ImageList cellHeight={130} className="gridList" cols={3}>
+                    <ImageList rowHeight={130} className="gridList" cols={3}>
                         {videos.map(({title, image, index}) => (
                             <ImageListItem
                                 key={image}
