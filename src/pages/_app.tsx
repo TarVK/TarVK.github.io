@@ -1,7 +1,7 @@
 import React, {Fragment} from "react";
 import {Layout} from "../components/Layout";
 import {AppProps} from "next/app";
-import {ThemeProvider} from "@emotion/react";
+import {Global, ThemeProvider} from "@emotion/react";
 import {theme} from "../theme";
 import {MuiThemeProvider, StylesProvider} from "@material-ui/core";
 import {IIndex} from "../components/sideIndex/Sidebar";
@@ -60,23 +60,24 @@ export default function App({Component, pageProps}: AppProps) {
                     rel="stylesheet"
                     href="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/katex.min.css"
                 />
-                <style>
-                    {`  
-                    .katex-display > .katex {
-                        display: inline-block;
-                        white-space: nowrap;
-                        max-width: 100%;
-                        overflow-x: auto;
-                        text-align: initial;
-                    }
-                    .katex {
-                        font: normal 1.21em KaTeX_Main, Times New Roman, serif;
-                        line-height: 1.2;
-                        white-space: normal;
-                        text-indent: 0;
-                        padding-right: 2px; // Fix scrollbar errors
-                    }`}
-                </style>
+                <Global
+                    styles={{
+                        ".katex-display > .katex": {
+                            display: "inline-block",
+                            whiteSpace: "nowrap",
+                            maxWidth: "100%",
+                            overflowX: "auto",
+                            textAlign: "initial",
+                        },
+                        ".katex": {
+                            font: "normal 1.21em KaTeX_Main, Times New Roman, serif",
+                            lineHeight: 1.2,
+                            whiteSpace: "normal",
+                            textIndent: 0,
+                            paddingRight: 2, // Fix scrollbar errors
+                        },
+                    }}
+                />
             </Head>
             <StylesProvider injectFirst>
                 <ThemeProvider theme={theme}>
