@@ -79,7 +79,12 @@ export const PagesCategory: FC<{
                     </Grid>
                     {allowReveal && (allResults.length > maxCount || showAll) && (
                         <Button
-                            css={theme => ({marginTop: theme.spacing(1)})}
+                            variant="contained"
+                            disableElevation
+                            css={theme => ({
+                                marginTop: theme.spacing(1),
+                                width: "100%",
+                            })}
                             onClick={() => setShowAll(s => !s)}>
                             {showAll ? "Show less" : "Show more"}
                         </Button>
