@@ -102,7 +102,7 @@ which is drawn as:
 
 Given an input with a total of `n` vertices (points of polygons) where the algorithm produces an output consisting of `k` polygons, the algorithm can run in `O((n + k) * log n)`time. My specific implementation in TypeScript is slightly less efficient though, and given a maximum of `s` overlapping polygons in the input, runs in `O((n + k) * (s + log n))` time.
 
-I will glans over some basic aspects of the algorithm here, but it's described in more detail in ![algorithm.pdf](https://github.com/TarVK/faces-in-plane/blob/main/explanation/algorithm.pdf).
+I will glans over some basic aspects of the algorithm here, but it's described in more detail in [algorithm.pdf](https://github.com/TarVK/faces-in-plane/blob/main/explanation/algorithm.pdf).
 The algorithm is based on the [sweep-line technique](https://en.wikipedia.org/wiki/Sweep_line_algorithm). This is a technique where the algorithm sweeps a virtual scan-line across the plane, and builds up the output when relevant points are passed. An example of this is illustrated in the gif below (taken from wikipedia) that shows-off Fortunes-algorithm for computing voronoi-diagrams:
 
 ![sweep example](https://upload.wikimedia.org/wikipedia/commons/2/25/Fortunes-algorithm.gif)
