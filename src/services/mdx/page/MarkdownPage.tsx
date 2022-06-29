@@ -9,6 +9,9 @@ import Head from "next/head";
 import {FC, ReactNode, useEffect} from "react";
 import {SearchResults} from "components/search/SearchResults";
 import {UrlBaseContext} from "../UrlBaseContext";
+import {ILinks} from "../../pageSummary/_types/IPageSummaryCompProps";
+import {RightSidebar} from "../../../components/RightSidebar";
+import {RelatedLinks} from "../../../components/RelatedLinks";
 
 export default function MarkdownPage({
     source,
@@ -16,12 +19,14 @@ export default function MarkdownPage({
     head,
     url,
     urlBase,
+    links,
 }: {
     source: MdxRemote.Source;
     ToC: ITOC;
     urlBase: string;
     url?: string;
     head?: ReactNode;
+    links?: ILinks;
 }) {
     return (
         <PageIndexProvider>
@@ -51,7 +56,10 @@ export default function MarkdownPage({
                     <MDXContent source={source} urlBase={urlBase} />
                     <Box height="80vh" />
                 </Box>
-                <PageIndex ToC={ToC} />
+                <RightSidebar>
+                    <RelatedLinks links={links ?? []} />
+                    <PageIndex ToC={ToC} />
+                </RightSidebar>
             </Box>
         </PageIndexProvider>
     );

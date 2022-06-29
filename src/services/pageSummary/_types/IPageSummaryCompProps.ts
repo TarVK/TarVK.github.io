@@ -8,4 +8,14 @@ export type IPageSummaryCompProps = {
     featuredIndex?: number;
     navIndex?: number;
     shareImage?: string;
+    links?: ILinks;
 };
+
+export type ILinks = {type: ILinkType; url: string; text?: string}[];
+export type ILinkType =
+    | "yt"
+    | "video"
+    | "download"
+    | "github"
+    | "website"
+    | "demo";

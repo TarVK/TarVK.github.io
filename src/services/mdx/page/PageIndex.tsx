@@ -1,5 +1,5 @@
 import {List} from "@material-ui/core";
-import {FC, useMemo} from "react";
+import {FC, useMemo, Fragment} from "react";
 import {INavItem, NavItem} from "../../../components/sideIndex/NavItem";
 import {Text} from "../../../components/textStyles/Text";
 import {getUrlHash} from "../../getUrlHash";
@@ -24,40 +24,13 @@ export const PageIndex: FC<{ToC: ITOC}> = ({ToC}) => {
     }, [section, ToC]);
 
     return (
-        <div css={{flexBasis: 240, flexShrink: 0}}>
-            <div
-                css={theme => ({
-                    top: theme.mixins.toolbar.height,
-                    position: "sticky",
-                    paddingTop: theme.spacing(2),
-                    paddingLeft: theme.spacing(2),
-                    boxSizing: "border-box",
-                    overflowY: "auto",
-                    [theme.breakpoints.up("md")]: {
-                        maxHeight: `calc(100vh - ${theme.mixins.toolbar.height}px)`,
-                    },
-                })}>
-                <Text css={{fontWeight: 800}}>Table of Contents</Text>
-                <List>
-                    {navItems.map((item, i) => (
-                        <NavItem key={i} item={item} />
-                    ))}
-                </List>
-
-                <div
-                    css={{
-                        zIndex: -1,
-                        backgroundColor: "white",
-                        position: "absolute",
-                        left: 2,
-                        top: 2,
-                        right: 2,
-                        bottom: 2,
-                        boxShadow: "0px 0px 2px 1px white",
-                        opacity: 0.5,
-                    }}
-                />
-            </div>
-        </div>
+        <Fragment>
+            <Text css={{fontWeight: 800}}>Table of Contents</Text>
+            <List>
+                {navItems.map((item, i) => (
+                    <NavItem key={i} item={item} />
+                ))}
+            </List>
+        </Fragment>
     );
 };

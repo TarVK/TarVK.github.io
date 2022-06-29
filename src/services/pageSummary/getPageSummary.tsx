@@ -55,6 +55,7 @@ export function createGetSummaryComponent(
         title: "",
         description: "",
         tags: [],
+        links: [],
     };
 
     const PageSummary: FC<IPageSummaryCompProps> = ({
@@ -65,6 +66,7 @@ export function createGetSummaryComponent(
         navIndex,
         tags = [],
         shareImage,
+        links,
     }) => {
         target.title = title;
         target.tags = tags;
@@ -72,6 +74,7 @@ export function createGetSummaryComponent(
         target.description = getReactNodeTextContent(description);
         target.navIndex = navIndex;
         target.shareImage = shareImage;
+        target.links = links ?? [];
 
         return (
             <RenderComp title={title} tags={tags} content={content} link="">

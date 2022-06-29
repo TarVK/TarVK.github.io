@@ -1,4 +1,5 @@
 import {MdxRemote} from "next-mdx-remote/types";
+import {ILinks} from "./IPageSummaryCompProps";
 
 export type IPageSummary = {
     compiledMdx: MdxRemote.Source;
@@ -11,4 +12,5 @@ export type IPageSummaryData = {
     featuredIndex?: number;
     navIndex?: number;
     shareImage?: string;
+    links?: ILinks;
 };

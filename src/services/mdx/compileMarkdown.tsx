@@ -113,5 +113,11 @@ export async function renderMarkdown(
         ...(target.shareImage ? {image: target.shareImage} : undefined),
     };
 
-    return {source: renderedSource, urlBase, ToC, shareData};
+    return {
+        source: renderedSource,
+        urlBase,
+        ToC,
+        shareData,
+        links: target.links ?? [],
+    };
 }

@@ -1,5 +1,6 @@
 import {MdxRemote} from "next-mdx-remote/types";
 import {ITOC} from "../mdx/TOCremarkPlugin";
+import {ILinks} from "../pageSummary/_types/IPageSummaryCompProps";
 import {IPageShareSummary} from "./IPageShareSummary";
 
 export type IPageProps = {
@@ -7,4 +8,5 @@ export type IPageProps = {
     ToC: ITOC;
     urlBase: string;
     shareData: IPageShareSummary;
+    links: ILinks;
 };
