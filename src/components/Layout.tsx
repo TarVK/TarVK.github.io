@@ -39,7 +39,7 @@ export const Layout: FC<{
     );
 
     return (
-        <div className="layout" css={{overflowX: "hidden"}}>
+        <div className="layout">
             {/* metadata */}
             <Head>
                 <title>TarVK</title>

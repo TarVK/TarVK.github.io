@@ -76,6 +76,9 @@ export default function App({Component, pageProps}: AppProps) {
                             textIndent: 0,
                             paddingRight: 2, // Fix scrollbar errors
                         },
+                        body: {
+                            overflowX: "hidden",
+                        },
                     }}
                 />
             </Head>
