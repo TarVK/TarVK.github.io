@@ -1,0 +1,120 @@
+<PageSummary 
+    title="Simulations"
+    content={<Video src="~/fluidSimulation.mp4" />}
+    tags={[ "graphics", "simulation", "fluid", "particle", "particles", "rigid body", "rigid bodies", "rigid", "2IMV15"]}
+    featuredIndex={1}
+    links={[
+        {type: "yt", url: "https://www.youtube.com/watch?v=uQjKPXUoUC4&t=2s", text: "Particle"}, 
+        {type: "yt", url: "https://www.youtube.com/watch?v=lC0qSyw7onQ", text: "Fluid"},
+        {type: "website", url: "~/2IMV15_Simulation_in_Computer_Graphics_project_01_report.pdf", text: "Particle report"},
+        {type: "website", url: "~/2IMV15_Simulation_in_Computer_Graphics_project_02_report.pdf", text: "Fluid report"},
+        {type: "download", url:"~/simulations.zip", text: "Windows download"}]}
+>
+
+Particle and Fluid simulations in C++
+
+</PageSummary>
+
+# Simulations
+
+For the course 2IMV15 Simulation in Computer Graphics taught at the TU/e, my group and I created two simulations. My group consisted of Boris Rokanov, Georgi Kostov, and me. This is the same group as our group for [Sweeper](./sweeper). We were originally supposed to have 4 group members, but the last member was overwhelmed by the material and dropped out early on.
+
+In the course we had several lectures about basic techniques commonly used in computer simulations. Meanwhile we had to implement these techniques in two projects: A particle simulation and a fluid simulation.
+
+Both projects were created virutually from scratch, in c++. I am unfortunately unable to share the source-code since the assignment is the same every year, so sharing this could be considered fraud by the university. I can however provide a download to the [windows exe](~/simulations.zip) such that you can play with it yourself.
+
+## Particle simulation
+
+The particle simulation consists of particles, forces acting on them, and constraints acting on them.
+Both the forces and constraints affecet the acceleration of every particle.
+The end goal is however to know the position of the particle, which given an initial position, is the second order integral of the acceleration.
+
+The simulation approximates this position over time by taking distinct time steps. The way the approximation is performed is called the integration scheme. The project implements 3 different integration schemes:
+
+-   [Euler integration](https://en.wikipedia.org/wiki/Euler_method)
+-   [Midpoint integration](https://en.wikipedia.org/wiki/Midpoint_method)
+-   [Runga kutta 4 integration](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods)
+
+Each of the integration schemes in the list is computationally more expensive than the previous, but also reaches a higher precision. Moreover, we see that Euler's integration often "overshoots", which adds energy into the system. On the other hand, midpoint integration usually "undershoots", taking away energy from the system. This makes midpoint seem more stable, since energy is often "lost" in the form of heat in the real world. When forces are too largely, we can sometimes see the simulation "explode", making all velocities just skyrocket. This will commonly happen when using Euler integration, as the energy keeps increasing. These different integration methods can be switched between at runtime in order to experiment with them.
+
+The simulation also implemented constraints. These constraints remove a degree of freedom from the particle position, for instance constraining the particle to be on a circle, or a certain distance apart from another particle. These constraints are enforced by removing any force that acts in a direction that would invalidate this constraint. This way, independently of how large the other forces are, the particle won't steer off-track. For several reasons including rounding errors, the particles could however still slowly drift off-course, therefore the constraints also add a small correcting force to make sure the constraint remains fullfilled.
+
+This combination of forces and constraints allows us to model some fun mechanics, such as a sort of whip as can be seen in the following video:
+
+<Video src="~/particleWhip.mp4" maxWidth={400} />
+
+We can also constraint the end of the whip, and see how the weights of the particles and gravity make the whip hang towards the left:
+
+<Video src="~/slideChain.mp4" maxWidth={400} />
+
+Some more details about our implementation can be read in our [project report](~/2IMV15_Simulation_in_Computer_Graphics_project_02_report.pdf). This report however already assumes familiatity with the subject matter, and isn't written too well.
+
+## Fluid simulation
+
+For the fluid-simulation we were given a [famous minimalistic implementation](http://graphics.cs.cmu.edu/nsp/course/15-464/Fall09/papers/StamFluidforGames.pdf) by Jos Stam. This simulation is based on a grid where each cell has a density (for the dye in the visualization), and a velocity that the fluid is moving at. We had to make some improvements to this simulation, such as adding vorticity confinement which counteracts energy loss caused by rounding errors, and the ability to add arbitrary boundaries to the simulation. These boundaries are grid-aligned cells that fluid should not be able to end-up in. Instead any fluids should bounce off of these walls. Stam's fluid simulation calculates a representation of the pressure during the simulation, in order to compensate for this and make the fluid act as if it's incompressible.
+
+Next we had to implement a basic rigid-body simulation with collision handing based on impulses. Using this rigid-body simulation, we should use our creativity to somehow make the rigid-bodies interact with the fluid. This is called two-way coupling; the fluid applies forces to the rigid-bodies, and the rigid-bodies apply forces to the fluid.
+
+I ended up using roughly the following approach:
+
+-   Extract the pressure from Stam's approach before compensating for it
+-   Rigid bodies project their polygon onto the fluid-grid to form boundaries
+-   The boundary of a rigid-bodies are approximated by a number of points on their boundary, and for each point on the boundary
+    -   The velocity of this point is transfered to the fluid grid
+    -   Transform the pressure into force applied at this point appropriately, and apply the force ont he rigid-body
+
+The approach I took here is not entirely physically accurate, but it ended up with pretty nice looking simulations. Despite having some inaccuracies, our results were voted best of our class, and I'm quite happy with the overall approach. The following video nicely shows off all of the features:
+
+<Video src="~/fluidSimulation.mp4" maxWidth={400} />
+
+The rigid-body simulation on its own is already quite fun to play with, allowing you to create some scenes like 8 ball pool interactions:
+
+<Video src="~/8ball.mp4" maxWidth={400} />
+
+When we add fluids to the simulation however, it is very interesting to see how drag can affect movement. When we have a long shape with its center of mass in the far front, it will just rotate around arbitrarily when no drag is present. However when we turn on the interaction with the fluid simulation, you can clearly see how the interaction with the fluid makes it tend to move head-first:
+
+<Video src="~/dartNoDrag.mp4" maxWidth={400} />
+<Video src="~/dart.mp4" maxWidth={400} />
+
+Some more details about our implementation can be read in our [project report](~/2IMV15_Simulation_in_Computer_Graphics_project_01_report.pdf). This report however already assumes familiatity with the subject matter, and isn't written too well.
+
+## Videos
+
+Below are some more videos to share the things we played around with in this project.
+
+Here is a showcase of a cloth generated using spring forces:
+
+<Video src="~/cloth.mp4" maxWidth={400} />
+
+This scene shows a chain with constraints on both ends:
+
+<Video src="~/doubleConnectedChain.mp4" maxWidth={400} />
+
+Here you see the particles with constraints and no gravity applied:
+
+<Video src="~/noGravityParticles.mp4" maxWidth={400} />
+
+Here you can see the simulation exploding when forces get too large:
+
+<Video src="~/particleExplosion.mp4" maxWidth={400} />
+
+Here you can see the solid boundaries, arranged in a car shape, for reasons:
+
+<Video src="~/carBoundary.mp4" maxWidth={400} />
+
+Here is an amazing recreation of the tragedy that overcame the titanic:
+
+<Video src="~/titanicSimulation.mp4" maxWidth={400} />
+
+In this video you can see how the 8-ball confiugration interacts with the fluid:
+
+<Video src="~/8ballFluid.mp4" maxWidth={400} />
+
+Here you can see what both the velocity and pressure fields within the fluid simulation look like:
+
+<Video src="~/velocityField.mp4" maxWidth={400} />
+<Video src="~/pressureField.mp4" maxWidth={400} />
+
+Here is an interaction between rigid-bodies, particles, and fluids:
+
+<Video src="~/fluidCloth.mp4" maxWidth={400} />

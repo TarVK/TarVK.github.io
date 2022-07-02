@@ -152,6 +152,7 @@ export const Navbar: FC<{
                     <Grid
                         container
                         direction="row"
+                        alignItems="center"
                         justifyContent="space-between">
                         {hasSidebar && (
                             <Button

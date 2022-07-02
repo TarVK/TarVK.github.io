@@ -40,9 +40,12 @@ export const BackgroundImage: FC<{
                 height: stretchTop ? `calc(${stretchTop}px + 100%)` : "100%",
                 backgroundColor: "white",
                 overflow: "hidden",
-                [theme.breakpoints.down("sm")]: {
-                    left: -50,
-                    right: -50,
+                [theme.breakpoints.down("md")]: {
+                    left: -24,
+                    maxWidth: "100vw",
+                },
+                [theme.breakpoints.down("xs")]: {
+                    left: -16,
                 },
                 ...(css
                     ? css instanceof Function

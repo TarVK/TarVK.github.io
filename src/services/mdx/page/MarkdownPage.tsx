@@ -56,10 +56,12 @@ export default function MarkdownPage({
                     <MDXContent source={source} urlBase={urlBase} />
                     <Box height="80vh" />
                 </Box>
-                <RightSidebar>
-                    <RelatedLinks links={links ?? []} />
-                    <PageIndex ToC={ToC} />
-                </RightSidebar>
+                <UrlBaseContext.Provider value={urlBase}>
+                    <RightSidebar>
+                        <RelatedLinks links={links ?? []} />
+                        <PageIndex ToC={ToC} />
+                    </RightSidebar>
+                </UrlBaseContext.Provider>
             </Box>
         </PageIndexProvider>
     );

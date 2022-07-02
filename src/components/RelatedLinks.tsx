@@ -14,6 +14,7 @@ import GitHub from "@material-ui/icons/GitHub";
 import Videocam from "@material-ui/icons/Videocam";
 import Website from "@material-ui/icons/Language";
 import {useTheme} from "@emotion/react";
+import {useUrl} from "../services/mdx/UrlBaseContext";
 
 export const RelatedLinks: FC<{links: ILinks}> = ({links}) => {
     const theme = useTheme();
@@ -26,9 +27,10 @@ export const RelatedLinks: FC<{links: ILinks}> = ({links}) => {
                 {links.map(({type, url, text}) => {
                     const typeData = icons[type];
                     return (
-                        <PlainLink href={url}>
+                        <PlainLink href={useUrl(url)}>
                             <ListItem
                                 style={{
+                                    padding: 0,
                                     paddingRight: theme.spacing(1),
                                     paddingLeft: theme.spacing(1),
                                 }}

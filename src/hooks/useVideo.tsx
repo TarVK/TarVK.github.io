@@ -1,5 +1,5 @@
 import {Field, IDataHook} from "model-react";
-import {FC, Fragment, useEffect, useRef} from "react";
+import {FC, Fragment, MouseEvent, useEffect, useRef} from "react";
 
 export function useVideo(config: IVideoConfig): {
     Video: IVideoComp;
@@ -110,10 +110,11 @@ export function useVideo(config: IVideoConfig): {
     const video = useRef<{Comp: IVideoComp; src: string}>();
     if (!video.current || video.current.src != config.src) {
         const src = config.src;
-        const onClick = () => {
+        const onClick = (e: MouseEvent) => {
             if (ref.current) {
                 if (ref.current.paused) ref.current.play();
                 else ref.current.pause();
+                e.preventDefault();
             }
         };
 
