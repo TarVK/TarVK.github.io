@@ -44,7 +44,15 @@ export const YTPlayer: FC<{
     /** The width/height ratio that the element should have, the player's width will fill its parent by default. "auto" relies on yt's video data however, which seems to be wrong atm */
     aspectRatio?: number | "auto";
     className?: string;
-}> = ({video, playlist, showPlaylistVideos = true, aspectRatio, ...rest}) => {
+    loop?: boolean;
+}> = ({
+    video,
+    playlist,
+    showPlaylistVideos = playlist ? true : false,
+    aspectRatio,
+    loop = false,
+    ...rest
+}) => {
     const player = useRef<YouTubePlayer>();
     const container = useRef<HTMLDivElement>(null);
     const placeholder = useRef<HTMLDivElement>(null);
@@ -62,11 +70,13 @@ export const YTPlayer: FC<{
                     list: playlist,
                     color: "white",
                     rel: 0,
+                    playlist: loop === true ? video : undefined,
+                    loop: loop === true ? 1 : 0,
                 },
             }));
 
             // Get the video data in the playlist
-            if (showPlaylistVideos) {
+            if (showPlaylistVideos === true) {
                 (async () => {
                     const IDS = await p.getPlaylist();
                     if (IDS) {
@@ -172,7 +182,7 @@ export const YTPlayer: FC<{
                         paddingBottom: 8,
                     },
                 })}>
-                {videos && (
+                {videos.length > 0 && (
                     <ImageList rowHeight={130} className="gridList" cols={3}>
                         {videos.map(({title, image, index}) => (
                             <ImageListItem
