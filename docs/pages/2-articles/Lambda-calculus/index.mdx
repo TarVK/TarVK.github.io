@@ -130,7 +130,7 @@ Next we can define functions that operate on our data by abusing the structure o
 
 -   iif = `c=>t=>f=>c(t)(f)`
 
-This function takes 3 parameters:
+This function has 3 parameters:
 
 -   `c`: The boolean condition
 -   `t`: The value to return if the condition is true
@@ -165,10 +165,10 @@ Additionally you may have recognized that our `iif` function in essence doesn't 
 We indeed get exactly the same results this way:
 
 ```js
-console.log(readBool(True(True)(False))); // true
-console.log(readBool(False(True)(False))); // false
-console.log(readBool(True(False)(True))); // false
-console.log(readBool(False(False)(True))); // true
+console.log($isTrue(True(True)(False))); // true
+console.log($isTrue(False(True)(False))); // false
+console.log($isTrue(True(False)(True))); // false
+console.log($isTrue(False(False)(True))); // true
 ```
 
 But defining `iif` like we did may still be preferable, because it makes it more explicit that it's a function with 3 parameters and keeps the higher level code using the `iif` easier to read than using `True` and `False` as functions in and off themselves. If we build up enough layers of abstractions onto our core data types, we no longer have to worry about the fact that they are actually represented by functions under the hood.
