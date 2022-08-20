@@ -1,0 +1,468 @@
+<PageSummary 
+    title="Model-react"
+    content={  <CodeBlock language="tsx" showHeader={false} code={`\
+const SomeInput: FC<{field: Field<string>}> = ({field}) => {
+    const [h] = useDataHook();
+    return (
+        <input
+            type="text"
+            value={field.get(h)}
+            onChange={e => field.set(e.target.value)}
+        />
+    );
+};\
+        `}/>}
+    tags={["React", "data-model", "data model", "data management", "reactive", "watchable", "subscribable", "subscribe", "state", "state management"]}
+    links={[{type: "github", url: "https://github.com/TarVK/model-react"}, {type: "demo", url: "https://tarvk.github.io/model-react/examples/build/"}]}
+>
+
+A library to allow visualization of object oriented software, using React.
+
+</PageSummary>
+
+# Model-react
+
+Model react is a library that allows developers to create data models with observable properties without adding a lot of boilerplate. This way your data model can serve as an observable state to be visualized by [React](https://reactjs.org/). Many alternative state management libraries exist, usually following the same core principles as [Redux](https://redux.js.org/), but I was not sold on any of them.
+I observed multiple issues with these libraries, and tried to resolve those with my own library. I don't claim that my library is better than others, since it has its own set of issues, but it does fit my own programming style better.
+
+I've used model-react in many of my own projects, including [LaunchMenu](/projects/launchmenu) and [Sweeper](/projects/sweeper).
+
+## Preview
+
+Below is a preview of some simple application visualizing a `Person` state. The premise of model-react is further explained in the [premise section](#model-react-premise)
+
+```tsx title=demo.tsx
+import {Field, useDataHook} from "model-react";
+import React from "react";
+import {render} from "react-dom";
+
+class Person {
+    constructor(name, age) {
+        this.name = new Field(name);
+        this.age = new Field(age);
+    }
+    setName(name) {
+        this.name.set(name);
+    }
+    getName(h) {
+        return this.name.get(h);
+    }
+    setAge(age) {
+        this.age.set(age);
+    }
+    getAge(h) {
+        return this.age.get(h);
+    }
+}
+
+const PersonEditor = ({person}) => {
+    const [h] = useDataHook();
+    return (
+        <div>
+            <input
+                value={person.getName(h)}
+                onChange={e => person.setName(e.target.value)}
+            />
+            <input
+                type="number"
+                value={person.getAge(h)}
+                onChange={e => person.setAge(Number(e.target.value))}
+            />
+        </div>
+    );
+};
+
+const PersonProfile = ({person}) => {
+    const [h] = useDataHook();
+    return (
+        <div>
+            Name: {person.getName(h)} <br />
+            Age: {person.getAge(h)}
+        </div>
+    );
+};
+
+const john = new Person("John", 1);
+render(
+    <div>
+        <PersonEditor person={john} />
+        <PersonProfile person={john} />
+    </div>,
+    document.getElementById("root")
+);
+```
+
+Below is a demo of what this code results in:
+
+<LaunchMenuModelReactDemo />
+
+## Why use a state manager?
+
+React comes with great tools for managing local state on a component level. However, when multiple components have to interact with each other and share state, it can quickly become difficult to manage this state. Such a state is usually called a "global state". React provides [contexts](https://reactjs.org/docs/context.html) that help spread state around in your application, but managing complex state can still be difficult. This is especially true when trying to combine different systems with React. One example of this is trying to synchronize React state with graphics made using [three.js](https://threejs.org/) like I've done in [Sweeper](/projects/sweeper).
+
+State management libraries simply provide additional tools to help you manage such complex state. You don't strictly _need_ to use such a library, but it can be a huge aid for bigger projects to keep everything managable and easy to understand.
+
+## Redux issues
+
+Redux has several problems in my opinion, but most of these "issues" aren't objectively bad. As with many things in life, there are many trade-offs between different properties, and it just so happens that I value different things than the developers of redux did. Additionally you should take my complaints with a grain of salt, since I've not had extensive experience with Redux. I've used it for a couple of small projects, but due to never having been sold on it, I've tried to stay clear of it when possible.
+
+### Forced programming style
+
+JavaScript (or TypeScript) is a really flexible language in terms of the programming paradigms and styles it allows for. You can for instance program in a functional way (though lacking some more advanced functional programming features), in a procedural way, in an object oriented way, and so on. React largely follows this idea by providing a flexible core library (batteries excluded), rather than being a complete framework. It has some primitive constructs such as a `render` function, the concepts of components and hooks, and the jsx syntax. Other than that, however, the way you structure your code and make use of react-elements is quite flexible once you understand how everything works. You usually end up combining React with a bunch of other tools and libraries in order to create your application. [LaunchMenu](/projects/launchmenu) provides a good example of React's flexibility. We ended up not relying on React's virtual-dom and life-cycle at all when structuring our application, but instead only used react to specify how to render the UI.
+Redux as a state-management library on the other hand forces a certain style on its users. There's nothing inherently wrong with this, but if this isn't the style you're used to it may be difficult to work with at first. From what I observed, this style is one that many people are unfamiliar with, since it's more similar to functional programming than object oriented programming. Therefore I think this lock-in is particularlly cumbersome.
+
+For the sake of fairness I should however mention that this lock-in to a certain style also allows redux users to easily add additional features to their codebase that are only possible due to the predictable nature of the code written with redux. One such feature is the ability to easily store local state through different sessions (sessions interupted by a page reload), since the state is fully serialisable. This is a good example of the trade-offs between different properties that I perviously mentioned.
+
+### Poor TypeScript support
+
+Redux does have TypeScript support, but this seems to be more of an afterthought than a native feature. Because TypeScript has a very powerful typing system [which is even Turing complete](https://github.com/microsoft/TypeScript/issues/14833), they managed to make TypeScript work relatively well, but I still experienced some difficulties when using it. I sometimes had to add more typing information than I would like, and many of the built-in data types such as `ThunkAction` end up with many generic parameters.
+
+Redux certainly is TypeScript compatible, and using it with TypeScript doesn't cause many issues, but I would argue it doesn't feel very smooth or well-integrated either.
+
+### Data transformations
+
+Redux relies on users defining their own serialisable plain data format, as well as "reducers" that can modify this data based on a recieved action. This means that the data is completely serialisable and essentially plain JSON. However when you want to use the data in a React component, you can't simply read off the property from this plain JSON. If you did this, React would not be aware of when the data changed, and hence wouldn't rerender your element when needed.
+
+To solve this, Redux makes use of a `useSelector` hook. Usage can for instance look something like this:
+
+```ts title=useSelectorUsage.tsx
+const todo = useSelector(state => state.todos[props.id]);
+```
+
+Now it looks like you're still reading a value off of this pure JSON data, but in reality you are not. I don't know the exact implementation details, but you're most likely reading off of a proxy object, which will mirror the strucutre of your original data. This means that the hook can observe what data you exactly accessed, and can internally make sure it will start observing any changes to this data.
+
+This works rather well, but I do consider this ["black magic"](<https://en.wikipedia.org/wiki/Magic_(programming)>). I generally am opposed to these types of things, since it reduces transparancy of how the software actually operates, which increases the chances of creating bugs. Once again there's a trade-off at play between transparancy and ease of use, but I am personally not a fan of how things work here. I think my main issue is that everything is presented as if it's very simple, while actually having many things going on behind the scenes.
+
+### Overwhelming
+
+The basic idea of Redux is pretty simple, and relatively nice in my opinion. You just have the concept of your plain JSON data, reducers, and actions. Redux however has grown a lot over the years, providing more and more tools that help deal with complex scenarios. By now there are so many different ways of doing things, and so many different techniques, that learning about the system can be quite overwhelming at first.
+
+This is probably not as big of a problem when a proper tutorial is followed, but I personally always just learn by doing things and playing around. I usually have a quick look at the documentation, and then just get started right away. I think this style of learning is a bit more difficult for this particular library compared to most other libraries I use.
+
+## Model react premise
+
+Model-react is based on the idea of the observer design pattern:
+
+![Observer](~/observer.png)
+
+This pattern is essentially the OOP version of how you can have a listener in JavaScript:
+
+```tsx title=Listeners.tsx
+const listener = (event) => console.log(event);
+
+element.addEventListener("click", listener);
+
+...
+
+element.removeEventListener("click", listener);
+```
+
+However with the observer design pattern, there is only 1 event type: the data change event.
+If I would want to have some `Person` class with an observable name, I could do something like this:
+
+```tsx title=Person.tsx
+class Person {
+    protected name: string = "";
+    public setName(name: string): void {
+        this.name = name;
+        this.update();
+    }
+    public getName(): string {
+        return name;
+    }
+
+    protected observers: (() => void)[] = [];
+    public addObserver(observer: () => void): void {
+        if (!this.observers.includes) this.observers.push(observer);
+    }
+    public removeObserver(observer: () => void): void {
+        const index = this.observers.indexOf(observer);
+        if (index != -1) this.observers.splice(index, 1);
+    }
+    public update() {
+        this.observers.forEach(observer => observer());
+    }
+}
+```
+
+Now when you want to use a person's data and update something when their name changes, you can simply add an observer:
+
+```tsx title=observing.tsx
+const person = new Person();
+const observer = () => {
+    // Use person to update something, E.g. rerender a react element
+}
+
+person.addObserver(observer);
+
+...
+
+person.removeObserver(observer);
+```
+
+We could create a react hook that takes care of the observer management, and create components like this:
+
+```tsx title=SomeComponent.tsx
+const SomeComponent: FC<{person: Person}> = ({person}) => {
+    useObserver(person);
+
+    return <div>name: {person.name}</div>;
+};
+```
+
+However, this approach has one large flaw: updates are object specific, rather than property specific. For example, if I add another propery `age` to the person, while having a component observe only their name, changes to age will still cause rerenders. Consider the following code:
+
+```tsx title=Person.tsx
+class Person {
+    protected name: string = "";
+    public setName(name: string): void {
+        this.name = name;
+        this.update();
+    }
+    public getName(): string {
+        return name;
+    }
+
+
+    protected age: number = 0;
+    public setAge(age: number): void {
+        this.age = age;
+        this.update();
+    }
+    public getAge(): number {
+        return age;
+    }
+
+    ...
+}
+```
+
+Both `setName` and `setAge` will call the same update method. Meaning that there's no differentiation between them in terms of updates. Fixing this is rather difficult, since each property would need its own set of observers. Additionally every component would need to correctly add its observers to the right properties.
+
+In essence, Model-react is a library that provides tools to take care of this without adding much boilerplate. Usage now looks something like this:
+
+```tsx title=modelReactUsage.tsx
+import {Field, useDataHook, IDataHook} from "model-react";
+
+class Person {
+    protected name = new Field("");
+    public setName(name: string): void {
+        this.name.set(name);
+    }
+    public getName(hook?: IDataHook): string {
+        return this.name.get(hook);
+    }
+
+    protected age = new Field(0);
+    public setAge(age: number): void {
+        this.age.set(age);
+    }
+    public getAge(age?: IDataHook): number {
+        return this.age.get(hook);
+    }
+}
+
+const SomeComponent: FC<{person: Person}> = ({person}) => {
+    const [hook] = useDataHook();
+
+    return <div>name: {person.getName(hook)}</div>;
+};
+```
+
+This `Field` is an example of what I call a "data-source". These data sources hold some piece of immutable data, and store observers (here called "data-hooks"). The `useDataHook` react hook can then be used to create an appropriate data-hook from within a react component. This data-hook is an object that includes an `call` function that will be used to let React know when used data has been updated.
+
+The big difference between this and the observer design pattern is that here observers (data-hooks) for a given property are added while retrieving the property, instead of having to specify dedicated `addObserver` and `removeObserver` functions for each property.
+
+## Model react benefits
+
+There are several aspects to this system that I quite like and think are worth mentioning. Once again, keep in mind that this is just based on my personal opinion and preferences.
+
+### Flexible programming style
+
+Model-react simply provides a set of tools to create data-sources and data-hooks. How these are used does not matter because model-react is not interested in the data flow or structure. This means you can write your code in an object oriented way as I illustrated above. But you could also create a shorthand way like this:
+
+```tsx title=modelReactShorthandUsage.tsx
+import {Field} from "model-react";
+
+class Person {
+    public name = new Field("");
+    public age = new Field(0);
+}
+
+const SomeComponent: FC<{person: Person}> = ({person}) => {
+    const [hook] = useDataHook();
+
+    return <div>name: {person.name.get(hook)}</div>;
+};
+```
+
+Or you can get rid of anything class-based and do it more schema based like redux does:
+
+```tsx title=modelReactSchema.tsx
+const data = {
+    users: new Field([
+        {
+            name: new Field("Bob"),
+            age: new Field(10)
+        },
+        {
+            name: new Field("Kim"),
+            age: new Field(30)
+        }
+    ]);
+};
+
+const SomeComponent: FC = ()=>{
+    const [hook] = useDataHook();
+
+    return <div>
+        {data.users.get(hook).map(user=>(
+            <div>
+                name: {user.name.get(hook)}
+            </div>
+        ))}
+    </div>;
+}
+```
+
+### Native TypeScript support
+
+Model-react is designed with TypeScript in mind, and does not make use of any of the complex TypeScript mapping features like Redux does. Most of the typings can automatically be infered by TypeScript and you generally don't have to worry about types. The only place where you usually have explicit type definitions is when you take `IDataHook` as an argument within your method, since arguments should always be typed.
+
+### Transparency
+
+Model-react does have some level of abstraction, but it's not in a form that I consider to be "black magic". The complexity hides in the data-hooks and data-sources, but not in the data flow. You are fully in control of how the data is accessed, but you will have to consider that a data-hook should be passed to a data-source when accessing data if you want the hook to be aware of changes. Additionally the connection between the data-hook and react simply follows the established standard of react hooks, which are known to cause rerenders when necessary, and should therefor also be easy to understand to most users.
+
+It may not be obvious how hooks internally work, or how data sources work, but this isn't relevant for usage.
+
+### Meta data
+
+Data-sources are also able to pass meta-data to the data-hooks. This includes information of whether the data is currently loading, and whether any exceptions occured. This data is not relevant for the `Field` data-source, but can be useful for other data sources. Model-react for instance comes with a `DataLoader` data-source, which can be used to fetch external data:
+
+```tsx title=dataLoaderUsage.tsx
+export const source = new DataLoader(async () => {
+    // Fake api: https://reqres.in/
+    const apiUrl = "https://reqres.in/api/users?delay=1";
+    const {data} = await (await fetch(apiUrl)).json();
+    return data[0].first_name;
+}, "none"); // "none" is the initial value
+
+const SomeComponent: FC = () => {
+    const [hook, {isLoading, getExceptions}] = useDataHook();
+
+    const value = source.get(hook);
+
+    if (isLoading()) return <div> Loading </div>;
+    const errors = getExceptions();
+    if (errors.length !== 0)
+        return <div> An error occured while fetching data </div>;
+
+    return <div> {value} </div>;
+};
+```
+
+The data-hook will automatically force the data-source to fetch the data when first accessed. This means that data is not being loaded unless actively used.
+
+There unfortunately is a small caveat with this system, because `isLoading` and `getExceptions` should be called after all values have been read. The following code would for instance not work:
+
+```tsx title=faultyDataLoaderUsage.tsx
+const SomeComponent: FC = () => {
+    const [hook, {isLoading, getExceptions}] = useDataHook();
+
+    if (isLoading()) return <div> Loading </div>;
+    const errors = getExceptions();
+    if (errors.length !== 0)
+        return <div> An error occured while fetching data </div>;
+
+    return <div> {source.get(hook)} </div>;
+};
+```
+
+This means that you would need to introduce many variables upfront for data, if you use many properties. To improve this as well as reduce boilerplate, the `Loader` component exists:
+
+```tsx title=loaderusage.tsx
+const SomeComponent: FC = () => (
+    <Loader
+        onLoad={<div> Loading </div>}
+        onError={<div> An error occured while fetching data </div>}>
+        {hook => <div> {source.get(hook)} </div>}
+    </Loader>
+);
+```
+
+### Derived data
+
+The prinviple of model-react natively allows for creation of derived data. This is data that can be computed/derived from existing data, and should be able to inform hooks of changes when its value changes.
+
+All you have to do to create some derived data, is create a function that accepts a data-hook and pass it to the used data-sources. Consider for instance the scenario where we want to add an "overview" property to our Person class:
+
+```tsx title=personOverview.tsx
+class Person {
+    public name = new Field("");
+    public age = new Field(0);
+    public getOverview(hook?: IDataHook): string {
+        return `name: ${name.get(hook)} - age: ${age.get(hook)}`;
+    }
+}
+```
+
+Usage of this new property is as easy as you expect:
+
+```tsx title=derivedPropertyAccess.tsx
+const SomeComponent: FC<{person: Person}> = ({person}) => {
+    const [hook] = useDataHook();
+
+    return <div>{person.getOverview(hook)}</div>;
+};
+```
+
+However, every time `getOverview` is called, it will recompute the overview, even if the data hasn't changed. For this example this is not a big problem, since the computation is light, but for heavier computations this can really harm performance.
+
+To solve this, a `DataCacher` data-source exists. This data-source simply wraps a derived property, and makes sure to cache it as long as no data changes. Usage is very straightforward:
+
+```tsx title=personOverview.tsx
+class Person {
+    public name = new Field("");
+    public age = new Field(0);
+    public overview = new DataCacher(hook => {
+        return `name: ${name.get(hook)} - age: ${age.get(hook)}`;
+    });
+}
+
+const SomeComponent: FC<{person: Person}> = ({person}) => {
+    const [hook] = useDataHook();
+
+    return <div>{person.overview.get(hook)}</div>;
+};
+```
+
+### Semi-global state
+
+State does not need to be fully global using model-react. You can easily instantiate a class that uses model-react from within a given component, and pass the instance around to elements in the subtree (possibly using contexts). This means that model-react can be used anywhere from global state to fully local state without issues. This allows you to neatly separate rendering and business logic anywhere you wish, by defining the logic/data to purely operate on model-react data sources rather than pure React-state.
+
+## Model-react drawbacks
+
+I personalyl really like model-react, but I'm also aware of several issues. I'm planning some follow-up library that hopefully fixes some of these, but this hasn't been made yet. Besides the listed issues, there are of course also more inherent issues related to mutability of data and the OOP form of programming that this library encourages. I however won't go into these, since they are not specific to my library.
+
+### Confusing
+
+Many people that I've shown my library to, were quite confused about this notion of data-Hooks. This may partially due to the name I chose for it, but this is likely not the main issue. I expect that people have difficulty understanding that the hook is used as an argument for the property you're retrieving. Unless you're already very familiar with the notion of callbacks, this may be unexpected. Additionally it does not help that a data-hook is not a plain function. So it's harder to see that it essentially is just a callback function to inform about data changes.
+
+I would need to do some more user (developer) testing and interview people about their experience to really find out how this can be improved. As discussed earlier, I value transparancy of the system, in order to reduce the number of bugs people create, so this is certainly worth looking into.
+
+### Inefficient
+
+During every component rerender, the component's data-hook is removed from all its subscribed data-sources, and readded to the appropriate data-sources. This operation can be relatively expensive if a component is rerendered often, and when many properties are observered. This is especially true when a large react subtree is entirely rerendered.
+
+I've not experienced any performance issues in practice. But at least on paper this can be quite a concern. I've not done any extensive testing in scenarios where these issues are likely to occur, nor tested anything on lower-end hardware.
+
+### No update surpression
+
+When having derived data, updatees from a used data-source don't always result in a change of the derived data. Consider for instance the following scenario:
+
+```tsx title=uselessUpdate.tsx
+const age = new Field(25);
+const isAdult = (hook?: IDataHook) => age.get(hook) >= 21;
+```
+
+When the age changes from `25` to `26`, an update to listeners of `isAdult` will be dispatched, even though the value of `isAdult` did not change. Model-react currently has no system in place that allows for such unnecessary updates to be surpressed.

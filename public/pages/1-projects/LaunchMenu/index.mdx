@@ -121,11 +121,11 @@ I am planning on releasing an implementation of this system as an independent pa
 
 ### Subscribable state
 
-Throughout all of LaunchMenu we've made use of my library [Model-react](https://tarvk.github.io/model-react/examples/build/). This library wasn't made specifically for LaunchMenu, but LaunchMenu wouldn't function without it. This is what allows us to keep LaunchMenu very flexible, yet keep the entire state and UI synchronized.
+Throughout all of LaunchMenu we've made use of my library [Model-react](./model-react). This library wasn't made specifically for LaunchMenu, but LaunchMenu wouldn't function without it. This is what allows us to keep LaunchMenu very flexible, yet keep the entire state and UI synchronized.
 
 At some point I will link to an independent page on Model-react, but I have not yet created said page.
 
-The main idea behind model-react is to make it as easy as possible to listen to changes of a value. It's in essence a form of dependency inversion. If I have some property `prop` which I use in multiple places of my application - let's say place `X` and `Y`, I would prefer to not have to also explicitly call `X` and `Y` when updating `prop`. Because Within code, that approach would result in cyclic dependencies and maintenance nightmares since `X` and `Y` depend on `prop`, but `prop` depends on `X` and `Y` because it would have to call some code there to forward the changes. Moreover that approach would not allow third party applets to be informed of state changes at all.
+The main idea behind model-react is to make it as easy as possible to listen to changes of a value. It's essentially a form of dependency inversion. If I have some property `prop` which I use in multiple places of my application - let's say at places `X` and `Y`, I would prefer to not have to also explicitly call `X` and `Y` when updating `prop`. Because within the static code, that approach would result in cyclic dependencies and maintenance nightmares since `X` and `Y` statically depend on `prop`, but `prop` then also statically depends on `X` and `Y` because it would have to call some code there to forward the changes. Moreover that approach would not allow third party applets to be informed of state changes at all.
 A common pattern to deal with this is the [`Observer` design pattern](https://en.wikipedia.org/wiki/Observer_pattern#:~:text=The%20observer%20pattern%20is%20a,calling%20one%20of%20their%20methods.):
 
 ![Observer](~/observer.svg)
@@ -201,8 +201,10 @@ Model-react also has some other note-worthy benefits compared to the direct Obse
 
 -   Everything concerning subscripting to data can be ignored if you only need it once
 -   Hooks can collect errors in data sources in order to not disrupt the normal flow
--   Data sources can indicate to hook that data is still processed which is useful for loading indicators
--   It's easier to not group updates of independent data together which results in fewer redundant updates
+-   Data sources can indicate to hooks that data is still being processed, which is useful for loading indicators
+-   It simplifies creating individual updates for each independent property, which results in fewer redundant updates
+
+You can read more about model-react on [its own dedicated page](./model-react).
 
 ### Fuzzy search
 
