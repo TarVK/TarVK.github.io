@@ -18,7 +18,7 @@ I've spent about 3 summers working on a mechanical lego device, which can simula
 
 The device receives power through a rotating shaft. This shaft can be rotated by any sufficiently strong power source, but for convenience I will mostly rotate it using 3 lego motors. The device features a looping data tape as opposed to a data tape that extends indefenitely in both directions, meaning that it doesn't fully accurately simulate a Turing Machine due to the limitations of living in a physical space. The data tape can encode 4 different symbols. To encode a Turing Machine onto the device, the transition system can be specified. The device can simulate Turing Machines with a state-space of up to 32 different states.
 
-As of right now, I'm still waiting to receive 2 of the 3 lego motors. I'm currently running it off of 1 motor, meaning it's really struggling. Once I received the 2 other motors I will record a short video of it operating a simple program. The device is incredibly slow, so in any video I will spweed up the footage significantly in order to make it more interesting to watch.
+As of right now, I'm still waiting to receive 2 of the 3 lego motors. I'm currently running it off of 1 motor, meaning it's really struggling. Once I received the 2 other motors I will record a short video of it operating a simple program. The device is incredibly slow, so in videos I will speed up the footage significantly in order to make it more interesting to watch.
 
 ## Interface
 
@@ -76,7 +76,7 @@ The read/write head move direction (opposite to the tape shift direction) can be
 -   Left: `0`
 -   Right: `1`
 
-The states of a Turing Machine can be mapped however in many ways, as long as a proper injective mapping from the states to 5 bit sequences is used that maps the initial state to `00000`. Additionally the state `11111` should only be used for the accepting state if there is any.
+The states of a Turing Machine can be mapped in many ways, as long as a proper injective mapping from the states to 5 bit sequences is used that maps the initial state to `00000`. Additionally the state `11111` should only be used for the accepting state if there is any.
 
 ## System
 
