@@ -1,8 +1,9 @@
 <PageSummary 
     title="Mechanical computer"
-    content={<img src="~/banner.jpg"/>}
+    content={<img src="~/banner.jpg" width="300"/>}
     tags={[ "Lego", "computer", "mechanical", "turing", "machine", "complete"]}
-    featuredIndex={2}
+    featuredIndex={1}
+    links={[{type: "yt", url: "https://www.youtube.com/watch?v=2DQSInzeAfw&list=PLZLcR3tglTH_PFIB8rj9eCN-7Zw5ZBRGL"}]}
 >
 
 A spent 3+ years creating a fully mechanical programmable [Turing Machine](https://en.wikipedia.org/wiki/Turing_machine) simulator out of legos.
@@ -10,6 +11,8 @@ A spent 3+ years creating a fully mechanical programmable [Turing Machine](https
 </PageSummary>
 
 # Mechanical computer (WIP)
+
+<img src="~/banner.jpg" width="450" />
 
 I've spent about 3 summers working on a mechanical lego device, which can simulate [Turing Machines](https://en.wikipedia.org/wiki/Turing_machine). This device is still not finished, but by now it is operational. Once it it's fully done, I will create multiple articles and videos on what Turing Machines are, and how this device can simulate them mechanically.
 
@@ -28,8 +31,7 @@ The device features a rather clean interface. The data tape consists of 36 cells
     This tape can be used to provide an input to run the program on.
 
 The device additionally features an indicator for the state it's currently in. This state is rerpesented using 5 binary bits, each of which is either red or white representing `1` and `0` respectively.
-
-<!-- TODO: add image -->
+![interface](~/interface.jpg)
 
 The device will always start in initial state `00000`. The state `11111` can be interpreted as its accepting state. In the future I will also add a special indicator for reaching the final state, which will also automatically turn off the power to the motors.
 
@@ -55,7 +57,7 @@ Each line consists of 8 binary bits. The value of a bit is encoded using a singl
 
 Between the 3rd and 4th bit an extra 4 studs are present with a single pin on condition lines, to mark them as a condition line.
 
-<!-- TODO: add image of example line -->
+![Program](~/program.jpg)
 
 The bits on the condition and data lines have the following meaning:
 
@@ -80,11 +82,15 @@ The states of a Turing Machine can be mapped however in many ways, as long as a 
 
 I will go into depth of how the Turing Machine operates at a later date. For now I will just dump a bunch of the intermediate test videos I've recorded throughout working on this project. Many of the parts I've recorded did not end up in the build, because they turned out to be too unreliable. I tested these parts in isolation before commiting to them, in order to improve the chances of eveything working straight away when the build was fully assembled. If I had just gone through with the initial designs that turned out to be unreliable, I would've wasted time on the structural elements that bridge all the separate components (since those would have to be fully redesigned), and it would probably have been significantly harder to find the cause of certain issues. Now there several parts that I've redesigned multiple times. But once I assembled all the finished components, I had the computer fully working within a couple of days.
 
-<!-- TODO: add playlist of test videos -->
+<YTPlayer video="2DQSInzeAfw" playlist="PLZLcR3tglTH_PFIB8rj9eCN-7Zw5ZBRGL" />
+
+Note that you can watch the video on youtube to get a slightly more extensive description of what you're watching.
 
 ## Inspiration
 
 Throughout my life I've been interested in mechanical things. When I was a kid I used to play a lot with lego technic, but never created anything impressive. Because of this interest I have however been following many people on youtube that create mechanical things, and have always been looking for these types of videos. At some point I want to compile a more complete list of builds that inspired me for making this lego computer, but for now I shall link just a few of them:
 
+-   [Wooden mechanical Turing machine](https://www.youtube.com/watch?v=vo8izCKHiF0)
 -   [Marble Machine](https://www.youtube.com/watch?v=IvUU8joBb1Q&ab_channel=Wintergatan) and the [Marble Machine X build-log](https://www.youtube.com/watch?v=Ld7zTApixXE&list=PLLLYkE3G1HED6rW-bkliHbMroHYFf4ukv&ab_channel=Wintergatan)
 -   [Lego fractal drawer](https://www.youtube.com/watch?v=PXIXZAB2HNc&ab_channel=aeh5040)
+-   [Lego ultimate useless box](https://www.youtube.com/watch?v=uFcSgoGZk3Y)
