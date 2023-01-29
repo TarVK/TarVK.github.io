@@ -34,10 +34,10 @@
     {((n, b) =>
         n.getYear() -
         b.getYear() -
-        (n.getMonth() < b.getMonth() || n.getDate() < b.getDate() ? 1 : 0))(
-        new Date(),
-        new Date("1998-09-27")
-    )}{" "}
+        (n.getMonth() < b.getMonth() ||
+        (n.getMonth() == b.getMonth() && n.getDate() < b.getDate())
+            ? 1
+            : 0))(new Date(), new Date("1998-09-27"))}{" "}
     year old Dutch software developer. I currently don't have a job and am
     instead focusing on getting my Computer Science master's degree.
 </Fragment> On this site I will talk about projects I've worked on, general topics

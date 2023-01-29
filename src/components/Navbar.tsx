@@ -138,6 +138,10 @@ export const Navbar: FC<{
                     <Paper
                         css={theme => ({
                             marginTop: theme.spacing(4),
+                            maxHeight: `calc(100vh - ${
+                                theme.spacing(4) * 2
+                            }px)`,
+                            overflowY: "auto",
                             padding: theme.spacing(1),
                         })}>
                         <SearchResults index="all.json" query={search} />

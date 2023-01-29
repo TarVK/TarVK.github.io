@@ -265,7 +265,7 @@ mul = n=>m=>(s=>b=>m(n(s))(b))
 pow = n=>m=>(s=>b=>m(n)(s)(b))
 
 sub = n=>m=>(s=>b=>m(sub1)(n)(s)(b))
-div = n=>m=>F(r=>n=>(s=>lazyIf(isZero(s))(v=>V0)(v=>add1(r(s))))(sub(n)(m)))(add1(n))
+div = n=>m=>Y(r=>n=>(s=>lazyIf(isZero(s))(v=>V0)(v=>add1(r(s))))(sub(n)(m)))(add1(n))
 
 // Data conversion helpers
 $V = $fromJsNumber = n=>new Array(n).fill().reduce(add1, V0)
@@ -764,7 +764,7 @@ mul = n=>m=>(s=>b=>m(n(s))(b))
 pow = n=>m=>(s=>b=>m(n)(s)(b))
 
 sub = n=>m=>(s=>b=>m(sub1)(n)(s)(b))
-div = n=>m=>F(r=>n=>(s=>lazyIf(isZero(s))(v=>V0)(v=>add1(r(s))))(sub(n)(m)))(add1(n))
+div = n=>m=>Y(r=>n=>(s=>lazyIf(isZero(s))(v=>V0)(v=>add1(r(s))))(sub(n)(m)))(add1(n))
 
 // Lists
 Nil = (c=>n=>n)
