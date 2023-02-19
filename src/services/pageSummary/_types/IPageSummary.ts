@@ -9,8 +9,9 @@ export type IPageSummaryData = {
     title: string;
     description: string;
     tags: string[];
+    shareImage?: string;
     featuredIndex?: number;
     navIndex?: number;
-    shareImage?: string;
     links?: ILinks;
+    hidden?: boolean;
 };

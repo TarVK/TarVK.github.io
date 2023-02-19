@@ -9,6 +9,7 @@ export type IPageSummaryCompProps = {
     navIndex?: number;
     shareImage?: string;
     links?: ILinks;
+    hidden?: boolean;
 };
 
 export type ILinks = {type: ILinkType; url: string; text?: string}[];

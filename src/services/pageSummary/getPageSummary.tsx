@@ -67,6 +67,7 @@ export function createGetSummaryComponent(
         tags = [],
         shareImage,
         links,
+        hidden = false,
     }) => {
         target.title = title;
         target.tags = tags;
@@ -75,6 +76,7 @@ export function createGetSummaryComponent(
         target.navIndex = navIndex;
         target.shareImage = shareImage;
         target.links = links ?? [];
+        target.hidden = hidden;
 
         return (
             <RenderComp title={title} tags={tags} content={content} link="">

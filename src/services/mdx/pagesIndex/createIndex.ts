@@ -3,6 +3,7 @@ import Path from "path";
 import {INavItem} from "../../../components/sideIndex/NavItem";
 import {IIndex} from "../../../components/sideIndex/Sidebar";
 import {getPageSummary} from "../../pageSummary/getPageSummary";
+import {IPageSummary} from "../../pageSummary/_types/IPageSummary";
 import {cleanupPath, getPathIndex} from "./createStaticPathsCollector";
 import {getPagesDir} from "./getPagesDir";
 
@@ -37,8 +38,9 @@ async function createNavItem(dir: string): Promise<INavItem | undefined> {
 
     if (!stat.isDirectory()) {
         if (Path.extname(dir) == ".mdx" && name != "index") {
-            const orderIndex =
-                (await getOrderIndexOverwrite(dir)) ?? pathOrderIndex;
+            const pageData = await getPageData(dir);
+            if (pageData.hidden) return;
+            const orderIndex = pageData.navIndex ?? pathOrderIndex;
             return {
                 name,
                 ...(orderIndex != undefined ? {orderIndex} : null),
@@ -47,10 +49,12 @@ async function createNavItem(dir: string): Promise<INavItem | undefined> {
     }
 
     const files = await FS.readdir(dir);
-    const orderIndex =
-        (files.includes("index.mdx")
-            ? await getOrderIndexOverwrite(Path.join(dir, "index.mdx"))
-            : undefined) ?? pathOrderIndex;
+    const pageData = files.includes("index.mdx")
+        ? await getPageData(Path.join(dir, "index.mdx"))
+        : undefined;
+    if (pageData?.hidden) return undefined;
+
+    const orderIndex = pageData?.navIndex ?? pathOrderIndex;
 
     const hasIndex = files.includes("index.mdx");
     const children = (
@@ -71,10 +75,7 @@ async function createNavItem(dir: string): Promise<INavItem | undefined> {
     };
 }
 
-async function getOrderIndexOverwrite(
-    path: string
-): Promise<number | undefined> {
+async function getPageData(path: string): Promise<IPageSummary> {
     const fileContent = await FS.readFile(path, "utf-8");
-    const pageSummary = await getPageSummary(fileContent, path);
-    return pageSummary?.navIndex;
+    return await getPageSummary(fileContent, path);
 }

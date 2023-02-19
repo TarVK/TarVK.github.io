@@ -33,6 +33,8 @@ export async function generateSearchIndex(
             const fileContent = await FS.readFile(filePath, "utf-8");
 
             const pageSummary = await getPageSummary(fileContent, filePath);
+            if (pageSummary.hidden) continue;
+
             const relativePath = Path.relative(process.cwd(), filePath);
             const doc = {
                 path: relativePath,
