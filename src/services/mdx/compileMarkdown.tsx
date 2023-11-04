@@ -69,7 +69,8 @@ export async function compileMarkdown(
 
     return renderMarkdown(
         source,
-        "/" + getPathRelativeToPublic(Path.dirname(filePath))
+        "/" +
+            getPathRelativeToPublic(Path.dirname(filePath)).replace(/\\/g, "/")
     );
 }
 
