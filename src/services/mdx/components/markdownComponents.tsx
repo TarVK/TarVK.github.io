@@ -21,6 +21,7 @@ import Head from "next/head";
 import {useUrl} from "../UrlBaseContext";
 import {FunctionInterpolation} from "@emotion/react";
 import * as PageComps from "../../../articleComponents";
+import moment from "moment";
 
 const autoFitImageRenderer: FC<{
     alt?: string;
@@ -125,6 +126,15 @@ export const markdownComponents = {
         tags = [],
         children: description,
     }: IPageSummaryCompProps) => <Fragment></Fragment>,
+    DateDelta: ({
+        from,
+        to,
+        format,
+    }: {
+        from: string;
+        to?: string;
+        format: any;
+    }) => <Fragment>{moment(to).diff(moment(from), format)}</Fragment>,
 
     // Page specific
     ...PageComps,

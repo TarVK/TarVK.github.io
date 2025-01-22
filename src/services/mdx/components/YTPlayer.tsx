@@ -45,12 +45,14 @@ export const YTPlayer: FC<{
     aspectRatio?: number | "auto";
     className?: string;
     loop?: boolean;
+    reverse?: boolean;
 }> = ({
     video,
     playlist,
     showPlaylistVideos = playlist ? true : false,
     aspectRatio,
     loop = false,
+    reverse = false,
     ...rest
 }) => {
     const player = useRef<YouTubePlayer>();
@@ -184,21 +186,23 @@ export const YTPlayer: FC<{
                 })}>
                 {videos.length > 0 && (
                     <ImageList rowHeight={130} className="gridList" cols={3}>
-                        {videos.map(({title, image, index}) => (
-                            <ImageListItem
-                                key={image}
-                                className="tile"
-                                onClick={() => selectVideo(index)}>
-                                <img src={image} alt={title} />
-                                <ImageListItemBar
-                                    title={title}
-                                    classes={{
-                                        root: "titleBar",
-                                        title: "title",
-                                    }}
-                                />
-                            </ImageListItem>
-                        ))}
+                        {(reverse ? [...videos].reverse() : videos).map(
+                            ({title, image, index}) => (
+                                <ImageListItem
+                                    key={image}
+                                    className="tile"
+                                    onClick={() => selectVideo(index)}>
+                                    <img src={image} alt={title} />
+                                    <ImageListItemBar
+                                        title={title}
+                                        classes={{
+                                            root: "titleBar",
+                                            title: "title",
+                                        }}
+                                    />
+                                </ImageListItem>
+                            )
+                        )}
                     </ImageList>
                 )}
             </div>
