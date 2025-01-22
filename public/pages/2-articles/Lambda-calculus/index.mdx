@@ -637,7 +637,7 @@ console.log($toJsNumber(lazyIf(True)(c => V3)(c => V4))); // 3
 
 Now we can finally define our quicksort function. It consists of 2 parts:
 
--   partition: Given a number `x` and a list `l`, splits `l` into 2 sub-lists `s` and `g` such that `s` contains all values of `l` that are smaller or equal to `x` and `g` contains all values of `l` that are larger than `x`
+-   partition: Given a number `p` and a list `l`, splits `l` into 2 sub-lists `s` and `g` such that `s` contains all values of `l` that are smaller or equal to `p` and `g` contains all values of `l` that are larger than `p`
 -   quicksort: Given a list `l` returns a list with the same values of `l` but sorted in ascending order
 
 <!-- prettier-ignore -->
